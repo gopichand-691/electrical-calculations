@@ -1,0 +1,1084 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <meta name="theme-color" content="#007bff">
+    <meta name="description" content="Offline electrical calculation tools and a custom meter test matrix.">
+    <link rel="manifest" href="manifest.json">
+    <title>Energy & Electrical Field Calculator Suite</title>
+    <style>
+        :root {
+            --primary: #007bff;
+            --bg: #f4f6f9;
+            --card-bg: #ffffff;
+            --text: #333333;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
+            background-color: var(--bg);
+            color: var(--text);
+            margin: 0;
+            padding: 10px;
+        }
+        .container {
+            max-width: 650px;
+            margin: 0 auto;
+        }
+        h2 {
+            text-align: center;
+            color: var(--primary);
+            margin-bottom: 15px;
+        }
+        h3 {
+            margin-top: 0;
+            color: #444;
+            border-bottom: 2px solid #e9ecef;
+            padding-bottom: 8px;
+        }
+        /* Tab Styling */
+        .tabs {
+            display: flex;
+            overflow-x: auto;
+            background: #e9ecef;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            gap: 2px;
+            scrollbar-width: none;
+        }
+        .tabs::-webkit-scrollbar { display: none; }
+        .tab-btn {
+            flex: 1;
+            padding: 12px 6px;
+            border: none;
+            background: none;
+            font-weight: bold;
+            font-size: 11px;
+            cursor: pointer;
+            text-align: center;
+            white-space: nowrap;
+            color: #555;
+        }
+        .tab-btn.active {
+            background: var(--primary);
+            color: white;
+            border-radius: 8px;
+        }
+        /* Calculator Cards */
+        .calc-card {
+            display: none;
+            background: var(--card-bg);
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+            margin-bottom: 20px;
+        }
+        .calc-card.active { display: block; }
+        .input-group {
+            margin-bottom: 12px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 600;
+            font-size: 14px;
+        }
+        input, select {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #cccccc;
+            border-radius: 6px;
+            box-sizing: border-box;
+            font-size: 16px;
+        }
+        button.calc-trigger {
+            width: 100%;
+            background: var(--primary);
+            color: white;
+            padding: 12px;
+            border: none;
+            border-radius: 6px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+        /* Results Section */
+        .results {
+            margin-top: 15px;
+            background: #eef7ff;
+            padding: 15px;
+            border-radius: 6px;
+            border-left: 4px solid var(--primary);
+            display: none;
+        }
+        .sub-section {
+            background: #f8f9fa;
+            padding: 12px;
+            border-radius: 6px;
+            margin-top: 15px;
+            border: 1px dashed #ccc;
+        }
+        .phase-inputs {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 8px;
+        }
+        .quadrant-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-top: 10px;
+            text-align: center;
+            font-weight: bold;
+        }
+        .q-box { padding: 10px; border: 2px solid #ccc; border-radius: 6px; background: #fff; font-size: 11px; }
+        .q-box.highlight { background: #d4edda; border-color: #28a745; color: #155724; }
+
+        /* Formula Card Layout */
+        .formula-box {
+            background: #fdfffe;
+            border: 1px solid #bce0fd;
+            border-radius: 8px;
+            padding: 12px;
+            margin-bottom: 15px;
+            font-size: 12px;
+            line-height: 1.5;
+            color: #333;
+        }
+        .formula-title {
+            font-weight: bold;
+            color: #0056b3;
+            margin-bottom: 6px;
+        }
+        .formula-equation {
+            font-family: "Courier New", Courier, monospace;
+            background: #f1f3f5;
+            padding: 4px 6px;
+            border-radius: 4px;
+            display: inline-block;
+            margin: 4px 0;
+            font-weight: bold;
+        }
+
+        /* Matrix Grid Layout */
+        .input-inline-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+        .table-responsive {
+            margin-top: 15px;
+            overflow-x: auto;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 5px;
+            font-size: 12px;
+        }
+        th, td {
+            border: 1px solid #dee2e6;
+            padding: 8px 5px;
+            text-align: left;
+        }
+        th {
+            background-color: #e9ecef;
+            color: #333;
+        }
+        tr:nth-child(even) { background-color: #f8f9fa; }
+        .section-header {
+            background-color: #343a40 !important;
+            color: white !important;
+            font-weight: bold;
+            text-align: center;
+        }
+        .section-header-extra {
+            background-color: #28a745 !important;
+            color: white !important;
+            font-weight: bold;
+            text-align: center;
+        }
+        .highlight-pulse {
+            font-weight: bold;
+            color: #28a745;
+        }
+        .highlight-limit {
+            font-weight: bold;
+            color: #dc3545;
+        }
+        .app-note{padding:10px 12px;border-radius:8px;background:#fff8e1;border-left:4px solid #e0a800;font-size:13px;line-height:1.45;margin:10px 0}
+        .action-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+        .action-grid button{margin-top:0;min-height:44px}
+        .small-label{font-size:12px;color:#555}
+        .status-pill{display:inline-block;padding:3px 8px;border-radius:999px;background:#e9ecef;font-size:12px;font-weight:bold}
+        .custom-row td{background:#f3fbf6!important}
+        button:focus,input:focus,select:focus{outline:3px solid #80bdff;outline-offset:1px}
+        @media(max-width:520px){body{padding:6px}.calc-card{padding:13px}.input-inline-grid,.action-grid{grid-template-columns:1fr}.tab-btn{padding:11px 8px}.table-responsive table{min-width:650px}h2{font-size:22px}}
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2>Electrical Calculations</h2>
+    
+    <div class="tabs">
+        <button class="tab-btn active" onclick="switchTab('transformer')">TX / PQ</button>
+        <button class="tab-btn" onclick="switchTab('cap_curr')">Capacity to Current</button>
+        <button class="tab-btn" onclick="switchTab('power')">Power</button>
+        <button class="tab-btn" onclick="switchTab('consumption')">Consumption</button>
+        <button class="tab-btn" onclick="switchTab('ohms')">Ohm/Z</button>
+        <button class="tab-btn" onclick="switchTab('meter')">4-Quad Matrix</button>
+        <button class="tab-btn" onclick="switchTab('ctvt')">CT/VT Testing</button>
+        <button class="tab-btn" onclick="switchTab('vec_calc')">Vector Calc</button>
+        <button class="tab-btn" onclick="switchTab('matrix148')">148-Matrix</button>
+    </div>
+
+    <!-- TRANSFORMER TAB -->
+    <div id="transformer" class="calc-card active">
+        <h3>Transformer Parameters</h3>
+        
+        <div class="formula-box">
+            <div class="formula-title">Transformer & PQ Formulas:</div>
+            • Turns Ratio: <div class="formula-equation">a = Vp / Vs</div><br>
+            • Reflected Resistance: <div class="formula-equation">Rp = Rs × a²</div><br>
+            • Primary Power Calculation: <div class="formula-equation">MW = (Secondary W × PT × CT) / 1,000,000</div>
+        </div>
+
+        <div class="input-group"><label>Primary Voltage (Vp in kV)</label><input type="number" id="tx_vp" value="220"></div>
+        <div class="input-group"><label>Secondary Voltage (Vs in kV)</label><input type="number" id="tx_vs" value="110"></div>
+        <div class="input-group"><label>Secondary Current (Is in A)</label><input type="number" id="tx_is" placeholder="Optional"></div>
+        <div class="input-group"><label>Secondary Resistance (Rs in Ω)</label><input type="number" id="tx_rs" placeholder="Optional"></div>
+        <div class="input-group"><label>Secondary Reactance (Xs in Ω)</label><input type="number" id="tx_xs" placeholder="Optional"></div>
+        <button class="calc-trigger" onclick="calcTransformer()">Calculate Transformer Parameters</button>
+        <div id="res_transformer" class="results"></div>
+
+        <div class="sub-section">
+            <h4>PQ Analyzer Conversion (to Primary MW)</h4>
+            <div class="input-group"><label>PT Ratio</label><input type="number" id="pq_pt" value="100"></div>
+            <div class="input-group"><label>CT Ratio</label><input type="number" id="pq_ct" value="80"></div>
+            <div class="input-group">
+                <label>Input Configuration</label>
+                <select id="pq_config" onchange="togglePhaseInputs()">
+                    <option value="single">Single Phase / Total Value Only</option>
+                    <option value="three">3-Phase Separate (R, Y, B)</option>
+                </select>
+            </div>
+            <div class="input-group">
+                <label>Input Power Unit</label>
+                <select id="pq_unit">
+                    <option value="W">Watts (W)</option>
+                    <option value="kW" selected>Kilowatts (kW)</option>
+                </select>
+            </div>
+            <div id="single_phase_ui" class="input-group">
+                <label>PQ Measured Secondary Power</label><input type="number" id="pq_p" placeholder="e.g., 2.5">
+            </div>
+            <div id="three_phase_ui" style="display: none; margin-bottom: 12px;">
+                <label>Secondary Power per Phase</label>
+                <div class="phase-inputs">
+                    <div><span style="color:red; font-weight:bold;">R:</span> <input type="number" id="pq_p_r" placeholder="0.0"></div>
+                    <div><span style="color:orange; font-weight:bold;">Y:</span> <input type="number" id="pq_p_y" placeholder="0.0"></div>
+                    <div><span style="color:blue; font-weight:bold;">B:</span> <input type="number" id="pq_p_b" placeholder="0.0"></div>
+                </div>
+            </div>
+            <button class="calc-trigger" style="background: #28a745;" onclick="calcPQAnalyzer()">Convert to Primary MW</button>
+            <div id="res_pq" class="results"></div>
+        </div>
+    </div>
+
+    <!-- CAPACITY / MD TO SECONDARY CURRENT TAB -->
+    <div id="cap_curr" class="calc-card">
+        <h3>Plant Capacity / MD to Secondary Current</h3>
+        
+        <div class="formula-box">
+            <div class="formula-title">3-Phase Current Calculation Formulas:</div>
+            • From MW: <div class="formula-equation">I_primary = (MW × 10⁶) / (√3 × V_kV × 1000 × PF)</div><br>
+            • From MD (MVA): <div class="formula-equation">I_primary = (MVA × 10⁶) / (√3 × V_kV × 1000)</div><br>
+            • Secondary CT Current: <div class="formula-equation">I_sec = I_primary / CT_ratio</div>
+        </div>
+
+        <div class="input-inline-grid">
+            <div class="input-group">
+                <label>CT Primary (A)</label>
+                <input type="number" id="cap_ct_p" value="300" placeholder="e.g. 300">
+            </div>
+            <div class="input-group">
+                <label>CT Secondary (A)</label>
+                <input type="number" id="cap_ct_s" value="1" placeholder="e.g. 1">
+            </div>
+        </div>
+
+        <div class="input-group">
+            <label>System Voltage (kV)</label>
+            <input type="number" id="cap_v_kv" value="220" step="0.1" placeholder="e.g. 220">
+        </div>
+
+        <div class="input-group">
+            <label>Capacity Input Mode</label>
+            <select id="cap_mode" onchange="toggleCapacityInputs()">
+                <option value="mw" selected>Direct Target Load (MW)</option>
+                <option value="percentage">Percentage of Total Plant Capacity (%)</option>
+                <option value="md_mva">Maximum Demand in MVA (MD)</option>
+                <option value="md_kva">Maximum Demand in kVA (MD)</option>
+            </select>
+        </div>
+
+        <!-- Mode-Specific Input Fields -->
+        <div id="ui_mw" class="input-group">
+            <label>Target Load (MW)</label>
+            <input type="number" id="cap_mw" value="15" step="0.1" placeholder="e.g. 15">
+        </div>
+
+        <div id="ui_percentage" style="display: none;">
+            <div class="input-group">
+                <label>Total Plant Capacity (MW)</label>
+                <input type="number" id="cap_total_mw" value="35" step="0.1" placeholder="e.g. 35">
+            </div>
+            <div class="input-group">
+                <label>Operating Load Percentage (%)</label>
+                <input type="number" id="cap_pct" value="42.86" step="0.01" placeholder="e.g. 50">
+            </div>
+        </div>
+
+        <div id="ui_md_mva" style="display: none;" class="input-group">
+            <label>Maximum Demand MD (MVA)</label>
+            <input type="number" id="cap_md_mva" value="15" step="0.1" placeholder="e.g. 15">
+        </div>
+
+        <div id="ui_md_kva" style="display: none;" class="input-group">
+            <label>Maximum Demand MD (kVA)</label>
+            <input type="number" id="cap_md_kva" value="15000" step="1" placeholder="e.g. 15000">
+        </div>
+
+        <div class="input-group">
+            <label>Operating Power Factor (cos θ)</label>
+            <input type="number" id="cap_pf" value="1.0" step="0.01" placeholder="e.g. 1.0 or 0.9">
+        </div>
+
+        <button class="calc-trigger" style="background: #fd7e14;" onclick="calcCapacityCurrent()">Calculate Secondary Current</button>
+        <div id="res_cap_curr" class="results"></div>
+    </div>
+
+    <!-- POWER TAB -->
+    <div id="power" class="calc-card">
+        <h3>Power Calculator</h3>
+        
+        <div class="formula-box">
+            <div class="formula-title">AC Single Phase Power Formula:</div>
+            • Apparent Power (S): <div class="formula-equation">kVA = (V × I) / 1000</div><br>
+            • Real Power (P): <div class="formula-equation">kW = kVA × cos θ</div><br>
+            • Reactive Power (Q): <div class="formula-equation">kVAR = √(S² - P²)</div>
+        </div>
+
+        <div class="input-group"><label>Voltage (V)</label><input type="number" id="pwr_v" value="230"></div>
+        <div class="input-group"><label>Current (I in Amperes)</label><input type="number" id="pwr_i" placeholder="e.g. 10"></div>
+        <div class="input-group"><label>Power Factor (cos θ)</label><input type="number" id="pwr_pf" value="0.85" step="0.01"></div>
+        <button class="calc-trigger" onclick="calcPower()">Calculate Power</button>
+        <div id="res_power" class="results"></div>
+    </div>
+
+    <!-- CONSUMPTION TAB -->
+    <div id="consumption" class="calc-card">
+        <h3>Energy Consumption & Cost</h3>
+        
+        <div class="formula-box">
+            <div class="formula-title">Consumption Metrics:</div>
+            • Daily Consumption: <div class="formula-equation">kWh = (Watts × Hours) / 1000</div><br>
+            • Financial Cost: <div class="formula-equation">Cost = Total kWh × Rate per kWh</div>
+        </div>
+
+        <div class="input-group"><label>Appliance Wattage (Watts)</label><input type="number" id="con_w" placeholder="e.g. 1500"></div>
+        <div class="input-group"><label>Hours Used Per Day</label><input type="number" id="con_h" placeholder="e.g. 5"></div>
+        <div class="input-group"><label>Cost per kWh</label><input type="number" id="con_cost" value="0.15" step="0.01"></div>
+        <button class="calc-trigger" onclick="calcEnergyCost()">Calculate Energy Cost</button>
+        <div id="res_consumption" class="results"></div>
+    </div>
+
+    <!-- OHMS TAB -->
+    <div id="ohms" class="calc-card">
+        <h3>Ohm's Law & Impedance</h3>
+        
+        <div class="formula-box">
+            <div class="formula-title">Fundamental Relations:</div>
+            • Voltage Drop: <div class="formula-equation">V = I × Z</div><br>
+            • Total Active Dissipation: <div class="formula-equation">P = I² × Z</div>
+        </div>
+
+        <div class="input-group"><label>Resistance / Impedance (Z or R in Ω)</label><input type="number" id="ohm_z" placeholder="e.g. 50"></div>
+        <div class="input-group"><label>Current (I in Amperes)</label><input type="number" id="ohm_i" placeholder="e.g. 2"></div>
+        <button class="calc-trigger" onclick="calcOhms()">Calculate Ohm's Law</button>
+        <div id="res_ohms" class="results"></div>
+    </div>
+
+    <!-- 4-QUADRANT MATRIX TAB -->
+    <div id="meter" class="calc-card">
+        <h3>4-Quadrant Energy Meter Matrix</h3>
+        
+        <div class="formula-box">
+            <div class="formula-title">Quadrant Conditions Vector Plane:</div>
+            • <b>Q1 (+P, +Q):</b> Import Inductive (Lag) | • <b>Q2 (-P, +Q):</b> Export Capacitive (Lead)<br>
+            • <b>Q3 (-P, -Q):</b> Export Inductive (Lag) | • <b>Q4 (+P, -Q):</b> Import Capacitive (Lead)
+        </div>
+
+        <div class="input-group">
+            <label>Active Power Flow (P)</label>
+            <select id="qm_p_flow">
+                <option value="import_pos">Import (+)</option>
+                <option value="export_neg">Export (-)</option>
+            </select>
+        </div>
+        <div class="input-group">
+            <label>Reactive Power Flow (Q)</label>
+            <select id="qm_q_flow">
+                <option value="import_pos">Import (+)</option>
+                <option value="export_neg">Export (-)</option>
+            </select>
+        </div>
+        <div class="input-group">
+            <label>Power Factor Type / Regime</label>
+            <select id="qm_pf_type">
+                <option value="lag_inductive">Lagging (Inductive / e.g. 0.5L)</option>
+                <option value="lead_capacitive">Leading (Capacitive / e.g. 0.8C)</option>
+            </select>
+        </div>
+        <button class="calc-trigger" style="background: #17a2b8;" onclick="analyzeQuadrant()">Determine Operating Quadrant</button>
+        
+        <div id="res_meter" class="results"></div>
+        
+        <div class="quadrant-grid">
+            <div id="q2_box" class="q-box">Q2<br>Export (-)<br>Import (+)<br>Leading (0.8C)</div>
+            <div id="q1_box" class="q-box">Q1<br>Import (+)<br>Import (+)<br>Lagging (0.5L)</div>
+            <div id="q3_box" class="q-box">Q3<br>Export (-)<br>Export (-)<br>Lagging (0.5L)</div>
+            <div id="q4_box" class="q-box">Q4<br>Import (+)<br>Export (-)<br>Leading (Capacitive)</div>
+        </div>
+    </div>
+
+    <!-- CT/VT TESTING TAB -->
+    <div id="ctvt" class="calc-card">
+        <h3>CT / VT Phase Displacement Tool</h3>
+        
+        <div class="formula-box">
+            <div class="formula-title">Angular Transformation Logic:</div>
+            • Degrees: <div class="formula-equation">deg = Minutes / 60</div><br>
+            • Radians: <div class="formula-equation">rad = deg × (π / 180)</div><br>
+            • Centiradians: <div class="formula-equation">crad = rad × 100</div>
+        </div>
+
+        <p style="font-size: 13px; color: #666; margin-top:0;">Convert instrument transformer phase displacement error from minutes into geometric degrees or metric units.</p>
+        <div class="input-group">
+            <label>Phase Displacement Error (in Minutes - min or ')</label>
+            <input type="number" id="ct_min" placeholder="e.g., 30" step="0.1">
+        </div>
+        <button class="calc-trigger" style="background: #6f42c1;" onclick="convertPhaseDisplacement()">Convert Error Angle</button>
+        <div id="res_ctvt" class="results"></div>
+    </div>
+
+    <!-- VECTOR CALC TAB -->
+    <div id="vec_calc" class="calc-card">
+        <h3>kVAh & Power Factor Calculator</h3>
+        
+        <div class="formula-box">
+            <div class="formula-title">Vector Triangle Summation:</div>
+            • Apparent Energy: <div class="formula-equation">kVAh = √(kWh² + kVARh²)</div><br>
+            • Avg Power Factor: <div class="formula-equation">cos θ = kWh / kVAh</div>
+        </div>
+
+        <div class="input-group">
+            <label>Active Energy (kWh)</label>
+            <input type="number" id="vc_kwh" placeholder="e.g., 0.094471" step="0.000001">
+        </div>
+        <div class="input-group">
+            <label>Reactive Energy / Q (kVARh)</label>
+            <input type="number" id="vc_kvarh" placeholder="e.g., 0.070892" step="0.000001">
+        </div>
+        <button class="calc-trigger" style="background: #00bcd4;" onclick="calcVectorEnergy()">Calculate Vector Parameters</button>
+        <div id="res_vec_calc" class="results"></div>
+    </div>
+
+    <!-- 148 MATRIX TAB -->
+    <div id="matrix148" class="calc-card">
+        <h3>148 Parameter Sweep Matrix</h3>
+        
+        <div class="formula-box">
+            <div class="formula-title">Calculation Logic Reference:</div>
+            1. Single Pulse Constant Duration (s): <div class="formula-equation">t_s = (3600 × 1000) / (3 × V × I × PF × Pulse Rate)</div><br>
+            2. Required Pulses to reach target time limit: <div class="formula-equation">N = ⌈T_target / t_s⌉</div><br>
+            3. Actual Test Time (s): <div class="formula-equation">T_act = N × t_s</div>
+        </div>
+
+        <div class="input-inline-grid">
+            <div class="input-group"><label>Voltage (V)</label><input type="number" id="mx_v" value="63.5" step="0.1"></div>
+            <div class="input-group"><label>Pulse Rate (imp/kWh)</label><input type="number" id="mx_pr" value="50000"></div>
+        </div>
+        <div class="input-inline-grid">
+            <div class="input-group"><label>Base Current Ib (A)</label><input type="number" id="mx_ib" value="1.0" step="0.1"></div>
+            <div class="input-group"><label>Max Current Imax (A)</label><input type="number" id="mx_imax" value="2.0" step="0.1"></div>
+        </div>
+        <div class="input-inline-grid">
+            <div class="input-group">
+                <label>Target Time Limit (sec)</label>
+                <input type="number" id="mx_target_time" value="22" step="1" placeholder="e.g. 20 or 22">
+            </div>
+            <div class="input-group">
+                <label>Meter Accuracy Class</label>
+                <select id="mx_class">
+                    <option value="0.2s" selected>Class 0.2S</option>
+                    <option value="0.5s">Class 0.5S</option>
+                    <option value="0.1s">Class 0.1S (limit not configured)</option>
+                    <option value="1.0">Class 1.0 (existing custom setting)</option>
+                </select>
+            </div>
+        </div>
+        <div class="sub-section" aria-label="Standard reference settings">
+            <h4>Standard / Meter Profile (reference settings)</h4>
+            <div class="input-inline-grid">
+                <div class="input-group"><label for="mx_meter_type">Meter measurement type</label><select id="mx_meter_type"><option value="active">Active-energy meter (Wh)</option><option value="reactive">Reactive-energy meter (varh)</option></select></div>
+                <div class="input-group"><label for="mx_standard_edition">Standard edition / amendment</label><select id="mx_standard_edition"><option value="IS 14697:2021 (original edition)">IS 14697:2021 (original edition)</option><option value="IS 14697:2021 + Amendment 1 (2022)">IS 14697:2021 + Amendment 1 (2022)</option><option value="IS 14697:2021 + Amendments 1 and 2 (2025)">IS 14697:2021 + Amendments 1 and 2 (2025)</option><option value="Reference not selected">Reference not selected</option></select></div>
+            </div>
+            <p class="app-note" id="standard_notice">Reference profile only. Your saved point sequence and existing limits are preserved as supplied. Verify each limit against the applicable official table before using results for conformity decisions.</p>
+        </div>
+        <button class="calc-trigger" style="background: #e0a800; color: #000;" onclick="generateFull148Table()">Generate Full 148 Sequence</button>
+
+        <!-- NEW: Manual custom test point calculator. Existing sequence is unchanged. -->
+        <div class="formula-box" style="margin-top:16px; border-color:#9bd3b0;">
+            <div class="formula-title" style="color:#187544;">Instant Custom Test Point Check (Temporary Only)</div>
+            <p style="margin:4px 0 12px;">Enter a test-point name, current, and PF to preview the pulse duration, required pulses, and actual test time instantly. This is only a temporary calculation: it will not be added to the 148-point matrix or saved into the code.</p>
+            <div class="input-inline-grid">
+                <div class="input-group">
+                    <label for="mx_custom_name">Test Point Name</label>
+                    <input type="text" id="mx_custom_name" value="Custom Point" placeholder="e.g. 0.15Ib at PF 0.9">
+                </div>
+                <div class="input-group">
+                    <label for="mx_custom_current">Current (A)</label>
+                    <input type="number" id="mx_custom_current" min="0.000001" step="any" placeholder="Enter current in A">
+                </div>
+            </div>
+            <div class="input-group">
+                <label for="mx_custom_pf">Power Factor (PF)</label>
+                <input type="number" id="mx_custom_pf" min="0.000001" max="1" step="any" placeholder="e.g. 0.5, 0.8, 1.0">
+            </div>
+            <div id="mx_custom_result" class="results" aria-live="polite" style="display:block; background:#f3fbf6; padding:10px; border-radius:6px; min-height:22px;">Enter a positive current and PF greater than 0 and up to 1 to calculate the values.</div>
+            <div class="input-inline-grid" style="margin-top:10px;">
+                <button type="button" class="calc-trigger" style="background:#198754; margin:0;" onclick="addCustomPointToMatrix()">Add Point to Matrix</button>
+                <button type="button" class="calc-trigger" style="background:#6c757d; margin:0;" onclick="clearCustomPointCheck()">Clear Test Point</button>
+            </div>
+        </div>
+        
+        <div class="table-responsive">
+            <table>
+                <thead>
+                    <tr>
+                        <th style="width: 6%;">No.</th>
+                        <th>Parameter</th>
+                        <th style="width: 12%;">PF</th>
+                        <th>Single Pulse ($t_s$)</th>
+                        <th>Required Pulses ($N$)</th>
+                        <th>Actual Test Time ($T_{act}$)</th>
+                    </tr>
+                </thead>
+                <tbody id="mx_table_body">
+                    <tr><td colspan="6" style="text-align:center; color:#6c757d; padding:15px;">Click generate to build the 148 parameter sequence profile.</td></tr>
+                </tbody>
+            </table>
+        </div>
+        <div class="sub-section" id="session_panel">
+            <h3>Test Session, Measurements & Reports</h3>
+            <p class="small-label">Session data is stored in this browser on this device. Use Export Session JSON to keep a backup. This does not alter the predefined matrix.</p>
+            <div class="input-inline-grid">
+                <div class="input-group"><label for="session_meter_id">Meter serial / ID</label><input id="session_meter_id" type="text" placeholder="Meter serial or lab ID"></div>
+                <div class="input-group"><label for="session_operator">Operator</label><input id="session_operator" type="text" placeholder="Operator name"></div>
+            </div>
+            <div class="input-inline-grid">
+                <div class="input-group"><label for="session_date">Test date</label><input id="session_date" type="date"></div>
+                <div class="input-group"><label for="session_notes">Session notes</label><input id="session_notes" type="text" placeholder="Temperature, setup, reference etc."></div>
+            </div>
+            <h4>Record a measured result</h4>
+            <div class="input-inline-grid">
+                <div class="input-group"><label for="measure_point">Test point / condition</label><input id="measure_point" type="text" placeholder="e.g. 0.1Ib, PF 0.5L" required></div>
+                <div class="input-group"><label for="measure_error">Measured error (%)</label><input id="measure_error" type="number" step="any" placeholder="e.g. -0.24"></div>
+            </div>
+            <div class="input-inline-grid">
+                <div class="input-group"><label for="measure_limit">Allowed error limit (%)</label><input id="measure_limit" type="number" min="0" step="any" placeholder="Enter verified limit"></div>
+                <div class="input-group"><label for="measure_notes">Measurement note</label><input id="measure_notes" type="text" placeholder="Optional note"></div>
+            </div>
+            <button type="button" class="calc-trigger" onclick="recordMeasurement()">Record Measurement</button>
+            <div id="measurement_result" class="results" aria-live="polite"></div>
+            <div class="action-grid" style="margin-top:10px">
+                <button type="button" class="calc-trigger" onclick="saveSession()">Save Session</button>
+                <button type="button" class="calc-trigger" style="background:#198754" onclick="exportMatrixCSV()">Export Matrix CSV</button>
+                <button type="button" class="calc-trigger" style="background:#0d6efd" onclick="exportSessionJSON()">Export Session JSON</button>
+                <button type="button" class="calc-trigger" style="background:#6f42c1" onclick="printTestReport()">Print / Save PDF Report</button>
+            </div>
+            <div class="input-group" style="margin-top:12px"><label for="saved_sessions">Saved sessions on this device</label><select id="saved_sessions"><option value="">Choose a saved session…</option></select></div>
+            <div class="action-grid"><button type="button" class="calc-trigger" onclick="loadSelectedSession()">Load Selected Session</button><button type="button" class="calc-trigger" style="background:#6c757d" onclick="clearSessionMeasurements()">Clear Current Measurements</button></div>
+            <h4>Recorded measurements</h4>
+            <div class="table-responsive"><table><thead><tr><th>Date/time</th><th>Point</th><th>Error (%)</th><th>Limit (%)</th><th>Status</th><th>Note</th></tr></thead><tbody id="measurements_body"><tr><td colspan="6">No measurements recorded in this session.</td></tr></tbody></table></div>
+        </div>
+    </div>
+</div>
+
+<script>
+    function switchTab(tabId) {
+        document.querySelectorAll('.calc-card').forEach(card => card.classList.remove('active'));
+        document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+        document.getElementById(tabId).classList.add('active');
+        
+        if (window.event && window.event.currentTarget) { 
+            window.event.currentTarget.classList.add('active'); 
+        } else if (event && event.target) {
+            event.target.classList.add('active');
+        }
+    }
+
+    function showResult(id, htmlContent) {
+        let div = document.getElementById(id); 
+        div.innerHTML = htmlContent; 
+        div.style.display = 'block';
+    }
+
+    function togglePhaseInputs() {
+        let config = document.getElementById('pq_config').value;
+        document.getElementById('single_phase_ui').style.display = (config === 'three') ? 'none' : 'block';
+        document.getElementById('three_phase_ui').style.display = (config === 'three') ? 'block' : 'none';
+    }
+
+    function toggleCapacityInputs() {
+        let mode = document.getElementById('cap_mode').value;
+        document.getElementById('ui_mw').style.display = (mode === 'mw') ? 'block' : 'none';
+        document.getElementById('ui_percentage').style.display = (mode === 'percentage') ? 'block' : 'none';
+        document.getElementById('ui_md_mva').style.display = (mode === 'md_mva') ? 'block' : 'none';
+        document.getElementById('ui_md_kva').style.display = (mode === 'md_kva') ? 'block' : 'none';
+    }
+
+    function calcTransformer() {
+        let vp = parseFloat(document.getElementById('tx_vp').value) || 0;
+        let vs = parseFloat(document.getElementById('tx_vs').value) || 1; 
+        let is = parseFloat(document.getElementById('tx_is').value);
+        let rs = parseFloat(document.getElementById('tx_rs').value);
+        let xs = parseFloat(document.getElementById('tx_xs').value);
+        let a = vp / vs; let a2 = a * a;
+        let out = `<strong>Turns Ratio (a):</strong> ${a.toFixed(4)}<br>`;
+        if (!isNaN(is)) out += `<strong>Primary Current (Ip):</strong> ${(is / a).toFixed(2)} A<br>`;
+        if (!isNaN(rs)) out += `<strong>Primary Resistance (Rp):</strong> ${(rs * a2).toFixed(2)} Ω<br>`;
+        if (!isNaN(xs)) out += `<strong>Primary Reactance (Xp):</strong> ${(xs * a2).toFixed(2)} Ω<br>`;
+        if (!isNaN(rs) && !isNaN(xs)) out += `<strong>Primary Impedance (Zp):</strong> ${(Math.sqrt(rs*rs + xs*xs) * a2).toFixed(2)} Ω<br>`;
+        showResult('res_transformer', out);
+    }
+
+    function calcCapacityCurrent() {
+        let ctP = parseFloat(document.getElementById('cap_ct_p').value);
+        let ctS = parseFloat(document.getElementById('cap_ct_s').value);
+        let vKv = parseFloat(document.getElementById('cap_v_kv').value);
+        let pf = parseFloat(document.getElementById('cap_pf').value);
+        let mode = document.getElementById('cap_mode').value;
+
+        if (isNaN(ctP) || isNaN(ctS) || isNaN(vKv) || isNaN(pf) || ctP <= 0 || ctS <= 0 || vKv <= 0 || pf <= 0) {
+            showResult('res_cap_curr', `<span style="color:red;">Please enter valid positive CT, Voltage, and PF parameters.</span>`);
+            return;
+        }
+
+        let targetMW = 0;
+        let targetMVA = 0;
+
+        if (mode === 'mw') {
+            targetMW = parseFloat(document.getElementById('cap_mw').value);
+            if (isNaN(targetMW) || targetMW <= 0) {
+                showResult('res_cap_curr', `<span style="color:red;">Please enter a valid target MW.</span>`);
+                return;
+            }
+            targetMVA = targetMW / pf;
+        } else if (mode === 'percentage') {
+            let totalCap = parseFloat(document.getElementById('cap_total_mw').value);
+            let pct = parseFloat(document.getElementById('cap_pct').value);
+            if (isNaN(totalCap) || isNaN(pct) || totalCap <= 0 || pct <= 0) {
+                showResult('res_cap_curr', `<span style="color:red;">Please enter valid plant capacity and percentage.</span>`);
+                return;
+            }
+            targetMW = totalCap * (pct / 100);
+            targetMVA = targetMW / pf;
+        } else if (mode === 'md_mva') {
+            targetMVA = parseFloat(document.getElementById('cap_md_mva').value);
+            if (isNaN(targetMVA) || targetMVA <= 0) {
+                showResult('res_cap_curr', `<span style="color:red;">Please enter a valid MD in MVA.</span>`);
+                return;
+            }
+            targetMW = targetMVA * pf;
+        } else if (mode === 'md_kva') {
+            let kva = parseFloat(document.getElementById('cap_md_kva').value);
+            if (isNaN(kva) || kva <= 0) {
+                showResult('res_cap_curr', `<span style="color:red;">Please enter a valid MD in kVA.</span>`);
+                return;
+            }
+            targetMVA = kva / 1000;
+            targetMW = targetMVA * pf;
+        }
+
+        let ctRatioFactor = ctP / ctS;
+        let vVolts = vKv * 1000;
+        let watts = targetMW * 1000000;
+
+        let iPrimary = watts / (Math.sqrt(3) * vVolts * pf);
+        let iSecondary = iPrimary / ctRatioFactor;
+        let iSecMilliAmps = iSecondary * 1000;
+
+        let out = `<strong>Active Power Load:</strong> ${targetMW.toFixed(3)} MW<br>
+                   <strong>Apparent Demand (MD):</strong> ${targetMVA.toFixed(3)} MVA (${(targetMVA*1000).toFixed(1)} kVA)<br>
+                   <strong>Primary Line Current (I<sub>primary</sub>):</strong> ${iPrimary.toFixed(2)} A<br>
+                   <strong>Secondary CT Current (I<sub>secondary</sub>):</strong> <span style="color:#007bff; font-weight:bold;">${iSecondary.toFixed(4)} A</span> (${iSecMilliAmps.toFixed(2)} mA)<br>
+                   <small style="color:#555;">Evaluated at ${vKv} kV line, CT ratio ${ctP}/${ctS}A, PF = ${pf}</small>`;
+        
+        showResult('res_cap_curr', out);
+    }
+
+    function calcPQAnalyzer() {
+        let pt = parseFloat(document.getElementById('pq_pt').value) || 1;
+        let ct = parseFloat(document.getElementById('pq_ct').value) || 1;
+        let unit = document.getElementById('pq_unit').value;
+        let config = document.getElementById('pq_config').value;
+        let total = (config === 'three') ? 
+            (parseFloat(document.getElementById('pq_p_r').value)||0) + (parseFloat(document.getElementById('pq_p_y').value)||0) + (parseFloat(document.getElementById('pq_p_b').value)||0) :
+            parseFloat(document.getElementById('pq_p').value) || 0;
+        let watts = (unit === "kW") ? total * 1000 : total;
+        let primaryMW = (watts * pt * ct) / 1000000;
+        showResult('res_pq', `<strong>Primary Power:</strong> ${primaryMW.toFixed(6)} MW<br><strong>Primary Power:</strong> ${(primaryMW * 1000).toFixed(2)} kW`);
+    }
+
+    function calcPower() {
+        let v = parseFloat(document.getElementById('pwr_v').value) || 0;
+        let i = parseFloat(document.getElementById('pwr_i').value) || 0;
+        let pf = parseFloat(document.getElementById('pwr_pf').value) || 1;
+        let s = (v * i) / 1000; let p = s * pf; let q = Math.sqrt(Math.max(0, s*s - p*p));
+        showResult('res_power', `<strong>Apparent (S):</strong> ${s.toFixed(2)} kVA<br><strong>Real (P):</strong> ${p.toFixed(2)} kW<br><strong>Reactive (Q):</strong> ${q.toFixed(2)} kVAR`);
+    }
+
+    function calcEnergyCost() {
+        let w = parseFloat(document.getElementById('con_w').value) || 0;
+        let h = parseFloat(document.getElementById('con_h').value) || 0;
+        let cost = parseFloat(document.getElementById('con_cost').value) || 0;
+        let daily = (w * h) / 1000;
+        showResult('res_consumption', `<strong>Daily:</strong> ${daily.toFixed(2)} kWh<br><strong>Monthly:</strong> ${(daily*30).toFixed(2)} kWh<br><strong>Monthly Cost:</strong> $${(daily*30*cost).toFixed(2)}`);
+    }
+
+    function calcOhms() {
+        let z = parseFloat(document.getElementById('ohm_z').value) || 0;
+        let i = parseFloat(document.getElementById('ohm_i').value) || 0;
+        showResult('res_ohms', `<strong>Voltage (V):</strong> ${(i*z).toFixed(2)} V<br><strong>Power (P):</strong> ${(i*z*i).toFixed(2)} W`);
+    }
+
+    function analyzeQuadrant() {
+        let p = document.getElementById('qm_p_flow').value;
+        let q = document.getElementById('qm_q_flow').value;
+        let pf = document.getElementById('qm_pf_type').value;
+        let quad = "Undefined"; let reg = ""; let target = "";
+        
+        document.querySelectorAll('.q-box').forEach(box => box.classList.remove('highlight'));
+        
+        if (p === 'import_pos' && q === 'import_pos' && pf === 'lag_inductive') {
+            quad = "Quadrant 1 (Q1)"; reg = "Active Import (+P) / Reactive Import (+Q) [Lagging Inductive]"; target = "q1_box";
+        } else if (p === 'export_neg' && q === 'import_pos' && pf === 'lead_capacitive') {
+            quad = "Quadrant 2 (Q2)"; reg = "Active Export (-P) / Reactive Import (+Q) [Leading Capacitive]"; target = "q2_box";
+        } else if (p === 'export_neg' && q === 'export_neg' && pf === 'lag_inductive') {
+            quad = "Quadrant 3 (Q3)"; reg = "Active Export (-P) / Reactive Export (-Q) [Lagging Inductive]"; target = "q3_box";
+        } else if (p === 'import_pos' && q === 'export_neg' && pf === 'lead_capacitive') {
+            quad = "Quadrant 4 (Q4)"; reg = "Active Import (+P) / Reactive Export (-Q) [Leading Capacitive]"; target = "q4_box";
+        } else {
+            quad = "Mixed Condition";
+            reg = "Verify input configurations.";
+        }
+
+        if(target) document.getElementById(target).classList.add('highlight');
+        showResult('res_meter', `<strong>Current System State:</strong> ${quad}<br><strong>Register Mapping:</strong> ${reg}`);
+    }
+
+    function convertPhaseDisplacement() {
+        let minutes = parseFloat(document.getElementById('ct_min').value);
+        if (isNaN(minutes)) { 
+            showResult('res_ctvt', `<span style="color:red;">Please enter a valid minute value.</span>`); 
+            return; 
+        }
+        let degrees = minutes / 60; 
+        let radians = degrees * (Math.PI / 180); 
+        let centiradians = radians * 100;
+        let out = `<strong>Geometric Degrees:</strong> ${degrees.toFixed(5)}°<br><strong>Radians:</strong> ${radians.toFixed(6)} rad<br><strong>Centiradians:</strong> ${centiradians.toFixed(4)} crad`;
+        showResult('res_ctvt', out);
+    }
+
+    function calcVectorEnergy() {
+        let kwh = parseFloat(document.getElementById('vc_kwh').value);
+        let kvarh = parseFloat(document.getElementById('vc_kvarh').value);
+        
+        if (isNaN(kwh) || isNaN(kvarh)) {
+            showResult('res_vec_calc', `<span style="color:red;">Please enter valid numerical values for both inputs.</span>`);
+            return;
+        }
+
+        let kvah = Math.sqrt((kwh * kwh) + (kvarh * kvarh));
+        let pf = kvah === 0 ? 1 : (kwh / kvah);
+
+        let out = `<strong>Calculated Apparent Energy (kVAh):</strong> ${kvah.toFixed(6)} kVAh<br>
+                   <strong>Calculated Avg Power Factor (cos θ):</strong> ${pf.toFixed(4)}`;
+        showResult('res_vec_calc', out);
+    }
+
+    const baseSequence = [
+        { name: "0.01Ib", mult: 0.01, pf: 1.0, isMax: false, sfx: "", limits: { "0.2s": 0.4, "0.5s": 1.0, "1.0": 1.5 } },
+        { name: "0.02Ib", mult: 0.02, pf: 1.0, isMax: false, sfx: "", limits: { "0.2s": 0.4, "0.5s": 1.0, "1.0": 1.5 } },
+        { name: "0.02Ib", mult: 0.02, pf: 0.5, isMax: false, sfx: "L", limits: { "0.2s": 0.5, "0.5s": 1.0, "1.0": 1.5 } },
+        { name: "0.02Ib", mult: 0.02, pf: 0.8, isMax: false, sfx: "C", limits: { "0.2s": 0.5, "0.5s": 1.0, "1.0": 1.5 } },
+        { name: "0.05Ib", mult: 0.05, pf: 1.0, isMax: false, sfx: "", limits: { "0.2s": 0.2, "0.5s": 0.5, "1.0": 1.0 } },
+        { name: "0.05Ib", mult: 0.05, pf: 0.5, isMax: false, sfx: "L", limits: { "0.2s": 0.5, "0.5s": 1.0, "1.0": 1.2 } },
+        { name: "0.05Ib", mult: 0.05, pf: 0.8, isMax: false, sfx: "C", limits: { "0.2s": 0.5, "0.5s": 1.0, "1.0": 1.2 } },
+        { name: "0.1Ib",   mult: 0.1,  pf: 1.0, isMax: false, sfx: "", limits: { "0.2s": 0.2, "0.5s": 0.5, "1.0": 1.0 } },
+        { name: "0.1Ib",   mult: 0.1,  pf: 0.5, isMax: false, sfx: "L", limits: { "0.2s": 0.3, "0.5s": 0.6, "1.0": 1.0 } },
+        { name: "0.1Ib",   mult: 0.1,  pf: 0.8, isMax: false, sfx: "C", limits: { "0.2s": 0.3, "0.5s": 0.6, "1.0": 1.0 } },
+        { name: "0.5Ib",   mult: 0.5,  pf: 1.0, isMax: false, sfx: "", limits: { "0.2s": 0.2, "0.5s": 0.5, "1.0": 1.0 } },
+        { name: "0.5Ib",   mult: 0.5,  pf: 0.5, isMax: false, sfx: "L", limits: { "0.2s": 0.3, "0.5s": 0.6, "1.0": 1.0 } },
+        { name: "0.5Ib",   mult: 0.5,  pf: 0.8, isMax: false, sfx: "C", limits: { "0.2s": 0.3, "0.5s": 0.6, "1.0": 1.0 } },
+        { name: "Ib",      mult: 1.0,  pf: 1.0, isMax: false, sfx: "", limits: { "0.2s": 0.2, "0.5s": 0.5, "1.0": 1.0 } },
+        { name: "Ib",      mult: 1.0,  pf: 0.5, isMax: false, sfx: "L", limits: { "0.2s": 0.3, "0.5s": 0.6, "1.0": 1.0 } },
+        { name: "Ib",      mult: 1.0,  pf: 0.8, isMax: false, sfx: "C", limits: { "0.2s": 0.3, "0.5s": 0.6, "1.0": 1.0 } },
+        { name: "Imax",    mult: 1.0,  pf: 1.0, isMax: true,  sfx: "", limits: { "0.2s": 0.2, "0.5s": 0.5, "1.0": 1.0 } },
+        { name: "Imax",    mult: 1.0,  pf: 0.5, isMax: true,  sfx: "L", limits: { "0.2s": 0.3, "0.5s": 0.6, "1.0": 1.0 } },
+        { name: "Imax",    mult: 1.0,  pf: 0.8, isMax: true,  sfx: "C", limits: { "0.2s": 0.3, "0.5s": 0.6, "1.0": 1.0 } },
+        { name: "0.05Ib A:", mult: 0.05, pf: 1.0, isMax: false, sfx: "", limits: { "0.2s": 0.3, "0.5s": 0.6, "1.0": 1.0 } },
+        { name: "0.05Ib B:", mult: 0.05, pf: 1.0, isMax: false, sfx: "", limits: { "0.2s": 0.3, "0.5s": 0.6, "1.0": 1.0 } },
+        { name: "0.05Ib C:", mult: 0.05, pf: 1.0, isMax: false, sfx: "", limits: { "0.2s": 0.3, "0.5s": 0.6, "1.0": 1.0 } },
+        { name: "0.1Ib A:", mult: 0.1, pf: 0.5, isMax: false, sfx: "L", limits: { "0.2s": 0.4, "0.5s": 1.0, "1.0": 1.2 } },
+        { name: "0.1Ib B:", mult: 0.1, pf: 0.5, isMax: false, sfx: "L", limits: { "0.2s": 0.4, "0.5s": 1.0, "1.0": 1.2 } },
+        { name: "0.1Ib C:", mult: 0.1, pf: 0.5, isMax: false, sfx: "L", limits: { "0.2s": 0.4, "0.5s": 1.0, "1.0": 1.2 } },
+        { name: "Ib A:",    mult: 1.0,  pf: 1.0, isMax: false, sfx: "", limits: { "0.2s": 0.3, "0.5s": 0.6, "1.0": 1.0 } },
+        { name: "Ib B:",    mult: 1.0,  pf: 1.0, isMax: false, sfx: "", limits: { "0.2s": 0.3, "0.5s": 0.6, "1.0": 1.0 } },
+        { name: "Ib C:",    mult: 1.0,  pf: 1.0, isMax: false, sfx: "", limits: { "0.2s": 0.3, "0.5s": 0.6, "1.0": 1.0 } },
+        { name: "Ib A:",    mult: 1.0,  pf: 0.5, isMax: false, sfx: "L", limits: { "0.2s": 0.4, "0.5s": 1.0, "1.0": 1.2 } },
+        { name: "Ib B:",    mult: 1.0,  pf: 0.5, isMax: false, sfx: "L", limits: { "0.2s": 0.4, "0.5s": 1.0, "1.0": 1.2 } },
+        { name: "Ib C:",    mult: 1.0,  pf: 0.5, isMax: false, sfx: "L", limits: { "0.2s": 0.4, "0.5s": 1.0, "1.0": 1.2 } },
+        { name: "Imax A:",  mult: 1.0,  pf: 1.0, isMax: true,  sfx: "", limits: { "0.2s": 0.3, "0.5s": 0.6, "1.0": 1.0 } },
+        { name: "Imax B:",  mult: 1.0,  pf: 1.0, isMax: true,  sfx: "", limits: { "0.2s": 0.3, "0.5s": 0.6, "1.0": 1.0 } },
+        { name: "Imax C:",  mult: 1.0,  pf: 1.0, isMax: true,  sfx: "", limits: { "0.2s": 0.3, "0.5s": 0.6, "1.0": 1.0 } },
+        { name: "Imax A:",  mult: 1.0,  pf: 0.5, isMax: true,  sfx: "L", limits: { "0.2s": 0.4, "0.5s": 1.0, "1.0": 1.2 } },
+        { name: "Imax B:",  mult: 1.0,  pf: 0.5, isMax: true,  sfx: "L", limits: { "0.2s": 0.4, "0.5s": 1.0, "1.0": 1.2 } },
+        { name: "Imax C:",  mult: 1.0,  pf: 0.5, isMax: true,  sfx: "L", limits: { "0.2s": 0.4, "0.5s": 1.0, "1.0": 1.2 } }
+    ];
+
+    const extraPointsSequence = [
+        { name: "0.2Ib", mult: 0.2, pf: 1.0, sfx: "", limits: { "0.2s": 0.2, "0.5s": 0.5, "1.0": 1.0 } },
+        { name: "0.2Ib", mult: 0.2, pf: 0.5, sfx: "L", limits: { "0.2s": 0.3, "0.5s": 0.6, "1.0": 1.0 } },
+        { name: "0.2Ib", mult: 0.2, pf: 0.8, sfx: "C", limits: { "0.2s": 0.3, "0.5s": 0.6, "1.0": 1.0 } },
+        { name: "2Ib", mult: 2.0, pf: 1.0, sfx: "", limits: { "0.2s": 0.2, "0.5s": 0.5, "1.0": 1.0 } },
+        { name: "2Ib", mult: 2.0, pf: 0.5, sfx: "L", limits: { "0.2s": 0.3, "0.5s": 0.6, "1.0": 1.0 } },
+        { name: "2Ib", mult: 2.0, pf: 0.8, sfx: "C", limits: { "0.2s": 0.3, "0.5s": 0.6, "1.0": 1.0 } },
+        { name: "3Ib", mult: 3.0, pf: 1.0, sfx: "", limits: { "0.2s": 0.2, "0.5s": 0.5, "1.0": 1.0 } },
+        { name: "3Ib", mult: 3.0, pf: 0.5, sfx: "L", limits: { "0.2s": 0.3, "0.5s": 0.6, "1.0": 1.0 } },
+        { name: "3Ib", mult: 3.0, pf: 0.8, sfx: "C", limits: { "0.2s": 0.3, "0.5s": 0.6, "1.0": 1.0 } },
+        { name: "4Ib", mult: 4.0, pf: 1.0, sfx: "", limits: { "0.2s": 0.2, "0.5s": 0.5, "1.0": 1.0 } },
+        { name: "4Ib", mult: 4.0, pf: 0.5, sfx: "L", limits: { "0.2s": 0.3, "0.5s": 0.6, "1.0": 1.0 } },
+        { name: "4Ib", mult: 4.0, pf: 0.8, sfx: "C", limits: { "0.2s": 0.3, "0.5s": 0.6, "1.0": 1.0 } },
+        { name: "5Ib", mult: 5.0, pf: 1.0, sfx: "", limits: { "0.2s": 0.2, "0.5s": 0.5, "1.0": 1.0 } },
+        { name: "5Ib", mult: 5.0, pf: 0.5, sfx: "L", limits: { "0.2s": 0.3, "0.5s": 0.6, "1.0": 1.0 } },
+        { name: "5Ib", mult: 5.0, pf: 0.8, sfx: "C", limits: { "0.2s": 0.3, "0.5s": 0.6, "1.0": 1.0 } },
+        { name: "6Ib", mult: 6.0, pf: 1.0, sfx: "", limits: { "0.2s": 0.2, "0.5s": 0.5, "1.0": 1.0 } },
+        { name: "6Ib", mult: 6.0, pf: 0.5, sfx: "L", limits: { "0.2s": 0.3, "0.5s": 0.6, "1.0": 1.0 } },
+        { name: "6Ib", mult: 6.0, pf: 0.8, sfx: "C", limits: { "0.2s": 0.3, "0.5s": 0.6, "1.0": 1.0 } },
+        { name: "7Ib", mult: 7.0, pf: 1.0, sfx: "", limits: { "0.2s": 0.2, "0.5s": 0.5, "1.0": 1.0 } },
+        { name: "7Ib", mult: 7.0, pf: 0.5, sfx: "L", limits: { "0.2s": 0.3, "0.5s": 0.6, "1.0": 1.0 } },
+        { name: "7Ib", mult: 7.0, pf: 0.8, sfx: "C", limits: { "0.2s": 0.3, "0.5s": 0.6, "1.0": 1.0 } },
+        { name: "8Ib", mult: 8.0, pf: 1.0, sfx: "", limits: { "0.2s": 0.2, "0.5s": 0.5, "1.0": 1.0 } },
+        { name: "8Ib", mult: 8.0, pf: 0.5, sfx: "L", limits: { "0.2s": 0.3, "0.5s": 0.6, "1.0": 1.0 } },
+        { name: "8Ib", mult: 8.0, pf: 0.8, sfx: "C", limits: { "0.2s": 0.3, "0.5s": 0.6, "1.0": 1.0 } }
+    ];
+
+    const blocks = ["Active Import", "Active Export", "Reactive Import", "Reactive Export"];
+    // User-added points are kept separately; the predefined 148 + 24 sequence is not modified.
+    function getCustomPointCalculation() {
+        const V = Number(document.getElementById("mx_v").value);
+        const pulseRate = Number(document.getElementById("mx_pr").value);
+        const targetTime = Number(document.getElementById("mx_target_time").value);
+        const current = Number(document.getElementById("mx_custom_current").value);
+        const pf = Number(document.getElementById("mx_custom_pf").value);
+        if (![V, pulseRate, targetTime, current, pf].every(Number.isFinite) || V <= 0 || pulseRate <= 0 || targetTime <= 0 || current <= 0 || pf <= 0 || pf > 1) {
+            return null;
+        }
+        const singlePulseTime = (3600 * 1000) / (3 * V * current * pf * pulseRate);
+        const pulses = Math.ceil(targetTime / singlePulseTime);
+        return { current, pf, singlePulseTime, pulses, actualTime: pulses * singlePulseTime };
+    }
+
+    function updateCustomPointPreview() {
+        const result = document.getElementById("mx_custom_result");
+        const calc = getCustomPointCalculation();
+        if (!calc) {
+            result.textContent = "Enter a positive current and PF greater than 0 and up to 1. Check voltage, pulse rate, and target time above.";
+            return;
+        }
+        result.textContent = `Single pulse time: ${calc.singlePulseTime.toFixed(4)} s | Required pulses: ${calc.pulses} | Actual test time: ${calc.actualTime.toFixed(2)} s`;
+    }
+
+    function addCustomPointToMatrix() {
+        const nameInput = document.getElementById("mx_custom_name");
+        const calc = getCustomPointCalculation();
+        const name = nameInput.value.trim() || "Custom Point";
+        const result = document.getElementById("mx_custom_result");
+        if (!calc) {
+            result.textContent = "Cannot add point yet. Enter a valid positive current and PF (greater than 0 and up to 1), and check voltage, pulse rate, and target time.";
+            return;
+        }
+
+        const tbody = document.getElementById("mx_table_body");
+        // Remove the initial instruction row if the predefined matrix has not been generated.
+        if (tbody.children.length === 1 && tbody.querySelector("td[colspan='6']") && tbody.textContent.toLowerCase().includes("click generate")) {
+            tbody.innerHTML = "";
+        }
+
+        // Add a temporary section header once. These rows exist only in the current page session.
+        if (!tbody.querySelector(".custom-points-header")) {
+            const headerRow = document.createElement("tr");
+            headerRow.className = "custom-points-header";
+            const headerCell = document.createElement("td");
+            headerCell.colSpan = 6;
+            headerCell.className = "section-header-extra";
+            headerCell.textContent = "CUSTOM POINTS (TEMPORARY)";
+            headerRow.appendChild(headerCell);
+            tbody.appendChild(headerRow);
+        }
+
+        const row = document.createElement("tr");
+        row.className = "custom-row";
+        const values = [name, `${calc.pf}`, `${calc.singlePulseTime.toFixed(4)} s`, `${calc.pulses} pulses`, `${calc.actualTime.toFixed(2)} s (Limit: N/A)`];
+        const numberCell = document.createElement("td");
+        numberCell.textContent = "—";
+        row.appendChild(numberCell);
+        values.forEach((value) => {
+            const cell = document.createElement("td");
+            cell.textContent = value;
+            row.appendChild(cell);
+        });
+        tbody.appendChild(row);
+        result.textContent = `Added temporary point “${name}” to the displayed matrix. It is not saved into the HTML code and will disappear if you regenerate the matrix or reload the page.`;
+    }
+
+    function clearCustomPointCheck() {
+        document.getElementById("mx_custom_name").value = "";
+        document.getElementById("mx_custom_current").value = "";
+        document.getElementById("mx_custom_pf").value = "";
+        document.getElementById("mx_custom_result").textContent = "Test point inputs cleared. Enter a name, current, and PF to check another point.";
+    }
+
+    ["mx_v", "mx_pr", "mx_target_time", "mx_custom_current", "mx_custom_pf"].forEach((id) => {
+        document.getElementById(id).addEventListener("input", updateCustomPointPreview);
+    });
+
+    function generateFull148Table() {
+        const V = Number(document.getElementById("mx_v").value);
+        const ib = Number(document.getElementById("mx_ib").value);
+        const imax = Number(document.getElementById("mx_imax").value);
+        const pulseRate = Number(document.getElementById("mx_pr").value);
+        const targetTime = Number(document.getElementById("mx_target_time").value);
+        if (![V, ib, imax, pulseRate, targetTime].every(Number.isFinite) || V <= 0 || ib <= 0 || imax <= 0 || pulseRate <= 0 || targetTime <= 0) {
+            alert("Please enter valid positive values for voltage, base current, maximum current, pulse rate, and target time.");
+            return;
+        }
+        const selectedClass = document.getElementById("mx_class").value;
+        const tbody = document.getElementById("mx_table_body");
+        tbody.innerHTML = ""; 
+        let globalCounter = 1;
+        const numerator = 1000 * 3600;
+
+        // Render Primary 4 Quadrants
+        blocks.forEach((category) => {
+            const headerRow = document.createElement("tr");
+            headerRow.innerHTML = `<td colspan="6" class="section-header">${category.toUpperCase()}</td>`;
+            tbody.appendChild(headerRow);
+            
+            baseSequence.forEach((item) => {
+                const current = item.isMax ? imax : (ib * item.mult);
+                
+                const denominator = 3 * V * current * item.pf * pulseRate;
+                const t_s = denominator > 0 ? (numerator / denominator) : 0;
+                
+                const N = t_s > 0 ? Math.ceil(targetTime / t_s) : 0;
+                const actualTime = N * t_s;
+                
+                const activeLimit = item.limits[selectedClass];
+                const limitLabel = Number.isFinite(activeLimit) ? `±${activeLimit}%` : "Not configured — verify official limit";
+                
+                const row = document.createElement("tr");
+                row.innerHTML = `<td><b>${globalCounter}</b></td>
+                                <td>${item.name}</td>
+                                <td>${item.pf} ${item.sfx}</td>
+                                <td>${t_s > 0 ? t_s.toFixed(4) + 's' : '∞'}</td>
+                                <td class="highlight-pulse">${N} pulses</td>
+                                <td class="highlight-limit">${actualTime > 0 ? actualTime.toFixed(2) + 's' : '∞'} (Limit: ${limitLabel})</td>`;
+                tbody.appendChild(row);
+                globalCounter++;
+            });
+        });
+
+        // Render Extra Points Section below Reactive Export
+        const extraHeaderRow = document.createElement("tr");
+        extraHeaderRow.innerHTML = `<td colspan="6" class="section-header-extra">EXTRA POINTS</td>`;
+        tbody.appendChild(extraHeaderRow);
+
+        extraPointsSequence.forEach((item) => {
+            const current = ib * item.mult;
+            const denominator = 3 * V * current * item.pf * pulseRate;
+            const t_s = denominator > 0 ? (numerator / denominator) : 0;
+            
+            const N = t_s > 0 ? Math.ceil(targetTime / t_s) : 0;
+            const actualTime = N * t_s;
+            
+            const activeLimit = item.limits[selectedClass];
+            const limitLabel = Number.isFinite(activeLimit) ? `±${activeLimit}%` : "Not configured — verify official limit";
+            
+            const row = document.createElement("tr");
+            row.innerHTML = `<td><b>${globalCounter}</b></td>
+                            <td>${item.name}</td>
+                            <td>${item.pf} ${item.sfx}</td>
+                            <td>${t_s > 0 ? t_s.toFixed(4) + 's' : '∞'}</td>
+                            <td class="highlight-pulse">${N} pulses</td>
+                            <td class="highlight-limit">${actualTime > 0 ? actualTime.toFixed(2) + 's' : '∞'} (Limit: ${limitLabel})</td>`;
+            tbody.appendChild(row);
+            globalCounter++;
+        });
+
+        // Add user-created points after the unchanged predefined base and extra sequences.
+    }
+
+    const SESSION_STORAGE_KEY = "electricalCalculationsSessions_v1";
+    let currentMeasurements = [];
+    let currentSessionId = String(Date.now());
+    function localDateISO(){ const d=new Date(); return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`; }
+    document.getElementById('session_date').value = localDateISO();
+    function getSessionData(){
+        return { id: currentSessionId, savedAt: new Date().toISOString(), meterId: document.getElementById('session_meter_id').value.trim(), operator: document.getElementById('session_operator').value.trim(), testDate: document.getElementById('session_date').value, notes: document.getElementById('session_notes').value.trim(), meterType: document.getElementById('mx_meter_type').value, standardEdition: document.getElementById('mx_standard_edition').value, accuracyClass: document.getElementById('mx_class').value, settings: { voltage: document.getElementById('mx_v').value, pulseRate: document.getElementById('mx_pr').value, baseCurrent: document.getElementById('mx_ib').value, maxCurrent: document.getElementById('mx_imax').value, targetTime: document.getElementById('mx_target_time').value }, measurements: currentMeasurements.slice() };
+    }
+    function getSavedSessions(){ try{return JSON.parse(localStorage.getItem(SESSION_STORAGE_KEY)||'[]')}catch(e){return []} }
+    function refreshSavedSessions(selectedId=''){ const select=document.getElementById('saved_sessions'); const sessions=getSavedSessions(); select.innerHTML='<option value="">Choose a saved session…</option>'; sessions.forEach(x=>{const o=document.createElement('option');o.value=x.id;o.textContent=`${x.testDate||'No date'} — ${x.meterId||'No meter ID'} — saved ${new Date(x.savedAt).toLocaleString()}`;select.appendChild(o)}); if(selectedId) select.value=selectedId; }
+    function saveSession(){ const session=getSessionData(); let all=getSavedSessions(); const ix=all.findIndex(x=>x.id===session.id); if(ix>=0)all[ix]=session;else all.unshift(session); try{localStorage.setItem(SESSION_STORAGE_KEY,JSON.stringify(all));refreshSavedSessions(session.id);showResult('measurement_result','Session saved on this device. Export Session JSON for a separate backup.')}catch(e){showResult('measurement_result','Unable to save in this browser. Storage may be disabled or full; use Export Session JSON instead.')} }
+    function recordMeasurement(){
+      const point=document.getElementById('measure_point').value.trim(); const error=Number(document.getElementById('measure_error').value); const limitRaw=document.getElementById('measure_limit').value; const limit=limitRaw===''?null:Number(limitRaw);
+      if(!point || document.getElementById('measure_error').value==='' || !Number.isFinite(error)){showResult('measurement_result','Enter a test point and a valid measured error.');return}
+      if(limit!==null && (!Number.isFinite(limit)||limit<0)){showResult('measurement_result','Allowed error limit must be a valid non-negative number.');return}
+      const status=limit===null?'LIMIT NOT ENTERED':(Math.abs(error)<=limit?'PASS':'FAIL');
+      currentMeasurements.push({dateTime:new Date().toISOString(),point,error,limit, status,note:document.getElementById('measure_notes').value.trim()}); renderMeasurements(); showResult('measurement_result',`Measurement recorded. Status: <strong>${status}</strong>${limit===null?' — enter a verified limit to assess conformity.':''}`);
+      document.getElementById('measure_point').value='';document.getElementById('measure_error').value='';document.getElementById('measure_limit').value='';document.getElementById('measure_notes').value='';
+    }
+    function renderMeasurements(){ const body=document.getElementById('measurements_body'); body.innerHTML=''; if(!currentMeasurements.length){body.innerHTML='<tr><td colspan="6">No measurements recorded in this session.</td></tr>';return} currentMeasurements.forEach(m=>{const tr=document.createElement('tr');[new Date(m.dateTime).toLocaleString(),m.point,m.error,(m.limit===null?'—':m.limit),m.status,m.note||''].forEach(v=>{const td=document.createElement('td');td.textContent=String(v);tr.appendChild(td)});body.appendChild(tr)}); }
+    function loadSelectedSession(){const id=document.getElementById('saved_sessions').value;const session=getSavedSessions().find(x=>x.id===id);if(!session){alert('Choose a saved session first.');return}currentSessionId=session.id;document.getElementById('session_meter_id').value=session.meterId||'';document.getElementById('session_operator').value=session.operator||'';document.getElementById('session_date').value=session.testDate||'';document.getElementById('session_notes').value=session.notes||'';document.getElementById('mx_meter_type').value=session.meterType||'active';document.getElementById('mx_standard_edition').value=session.standardEdition||'Reference not selected';document.getElementById('mx_class').value=session.accuracyClass||'0.2s';const map={mx_v:'voltage',mx_pr:'pulseRate',mx_ib:'baseCurrent',mx_imax:'maxCurrent',mx_target_time:'targetTime'};Object.entries(map).forEach(([id,k])=>{if(session.settings&&session.settings[k]!==undefined)document.getElementById(id).value=session.settings[k]});currentMeasurements=session.measurements||[];renderMeasurements();showResult('measurement_result','Saved session loaded. Generate the matrix to view the calculated sequence for these settings.');}
+    function clearSessionMeasurements(){if(!confirm('Clear measurements from the current session? Saved sessions are not deleted.'))return;currentMeasurements=[];renderMeasurements();showResult('measurement_result','Current measurements cleared. Previously saved sessions remain stored.');}
+    function downloadBlob(name,content,type){const blob=new Blob([content],{type});const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download=name;document.body.appendChild(a);a.click();a.remove();URL.revokeObjectURL(url)}
+    function csvEscape(v){const s=String(v??'');return '"'+s.replace(/"/g,'""')+'"'}
+    function exportMatrixCSV(){const rows=[['No.','Parameter','PF','Single Pulse','Required Pulses','Actual Test Time / Limit']];document.querySelectorAll('#mx_table_body tr').forEach(tr=>{if(tr.querySelector('td[colspan]')){rows.push([tr.textContent.trim()]);return}rows.push(Array.from(tr.cells).map(td=>td.textContent.trim()))});const settings=getSessionData();rows.unshift(['Meter type',settings.meterType],['Standard reference',settings.standardEdition],['Accuracy class setting',settings.accuracyClass],['Voltage (V)',settings.settings.voltage],['Pulse rate (imp/kWh)',settings.settings.pulseRate],['Base current Ib (A)',settings.settings.baseCurrent],['Maximum current Imax (A)',settings.settings.maxCurrent],['Target time (s)',settings.settings.targetTime],[]);downloadBlob('electrical_matrix_'+(settings.testDate||localDateISO())+'.csv','\ufeff'+rows.map(r=>r.map(csvEscape).join(',')).join('\r\n'),'text/csv;charset=utf-8');}
+    function exportSessionJSON(){const session=getSessionData();downloadBlob('electrical_test_session_'+(session.testDate||localDateISO())+'.json',JSON.stringify({session,measurements:currentMeasurements,notice:'Limits are user-configured values; verify against the applicable official standard.'},null,2),'application/json');}
+    function printTestReport(){const s=getSessionData();const rows=currentMeasurements.map(m=>`<tr><td>${escapeHtml(new Date(m.dateTime).toLocaleString())}</td><td>${escapeHtml(m.point)}</td><td>${escapeHtml(m.error)}</td><td>${m.limit===null?'—':escapeHtml(m.limit)}</td><td>${escapeHtml(m.status)}</td><td>${escapeHtml(m.note||'')}</td></tr>`).join('');const win=window.open('','_blank');if(!win){alert('Allow pop-ups to print the report, or use Export Session JSON.');return}win.document.write(`<!doctype html><html><head><title>Electrical Test Report</title><meta name="viewport" content="width=device-width,initial-scale=1"><style>body{font:14px Arial,sans-serif;margin:24px;color:#222}h1{font-size:22px}table{border-collapse:collapse;width:100%;margin:12px 0}td,th{border:1px solid #bbb;padding:7px;text-align:left}th{background:#eee}.note{padding:10px;background:#fff8e1}</style></head><body><h1>Electrical Test Report</h1><p><b>Meter ID:</b> ${escapeHtml(s.meterId||'—')} &nbsp; <b>Operator:</b> ${escapeHtml(s.operator||'—')}</p><p><b>Date:</b> ${escapeHtml(s.testDate||'—')} &nbsp; <b>Meter type:</b> ${escapeHtml(s.meterType)} </p><p><b>Standard reference:</b> ${escapeHtml(s.standardEdition)} &nbsp; <b>Class setting:</b> ${escapeHtml(s.accuracyClass)}</p><p><b>Voltage:</b> ${escapeHtml(s.settings.voltage)} V; <b>Pulse rate:</b> ${escapeHtml(s.settings.pulseRate)} imp/kWh; <b>Ib:</b> ${escapeHtml(s.settings.baseCurrent)} A; <b>Imax:</b> ${escapeHtml(s.settings.maxCurrent)} A; <b>Target:</b> ${escapeHtml(s.settings.targetTime)} s</p><p><b>Notes:</b> ${escapeHtml(s.notes||'—')}</p><div class="note">Compliance caution: limits must be verified against the applicable official standard/table and meter configuration. “Pass” is computed only against the limit entered by the operator.</div><h2>Measurements</h2><table><thead><tr><th>Date/time</th><th>Point</th><th>Error (%)</th><th>Limit (%)</th><th>Status</th><th>Note</th></tr></thead><tbody>${rows||'<tr><td colspan="6">No measurements recorded.</td></tr>'}</tbody></table><h2>Calculated Matrix Snapshot</h2><table><thead><tr><th>No.</th><th>Parameter</th><th>PF</th><th>Single pulse</th><th>Required pulses</th><th>Actual time / limit</th></tr></thead><tbody>${Array.from(document.querySelectorAll('#mx_table_body tr')).map(tr=>'<tr>'+Array.from(tr.cells).map(td=>`<td>${escapeHtml(td.textContent.trim())}</td>`).join('')+'</tr>').join('')}</tbody></table><p>Generated ${escapeHtml(new Date().toLocaleString())}</p><script>window.onload=()=>window.print()<\/script></body></html>`);win.document.close();}
+    function escapeHtml(value){return String(value??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
+    document.getElementById('mx_meter_type').addEventListener('change',()=>{document.getElementById('standard_notice').textContent='Reference profile only ('+(document.getElementById('mx_meter_type').value==='active'?'active-energy Wh':'reactive-energy varh')+'). Existing custom limits remain unchanged. Confirm applicable table and amendments before compliance use.'});
+    refreshSavedSessions();
+    // Standalone HTML works offline. PWA install requires HTTPS or localhost.
+    if ('serviceWorker' in navigator && (location.protocol === 'https:' || location.hostname === 'localhost')) {
+        window.addEventListener('load', () => navigator.serviceWorker.register('./sw.js').catch(() => {}));
+    }
+</script>
+</body>
+</html>
