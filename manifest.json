@@ -2,7 +2,7 @@
   "name": "Electrical Calculations",
   "short_name": "Electrical Calc",
   "description": "Offline electrical calculations and meter test matrix",
-  "start_url": "./Electrical_Calculations_Enhanced.html",
+  "start_url": "./index.html",
   "scope": "./",
   "display": "standalone",
   "background_color": "#f4f6f9",
