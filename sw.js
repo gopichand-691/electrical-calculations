@@ -1,5 +1,5 @@
 
-const CACHE_NAME = 'electrical-calculations-v2';
+const CACHE_NAME = 'electrical-calculations-v3';
 
 const APP_SHELL = [
   './index.html',
@@ -34,6 +34,30 @@ self.addEventListener('activate', event => {
 self.addEventListener('fetch', event => {
   if (event.request.method !== 'GET') return;
 
+  const url = new URL(event.request.url);
+
+  if (
+    url.origin === self.location.origin &&
+    (url.pathname.endsWith('/index.html') ||
+     url.pathname.endsWith('/'))
+  ) {
+    event.respondWith(
+      fetch(event.request)
+        .then(response => {
+          if (response.ok) {
+            const copy = response.clone();
+            caches.open(CACHE_NAME)
+              .then(cache => cache.put('./index.html', copy));
+          }
+          return response;
+        })
+        .catch(async () => {
+          return (await caches.match('./index.html')) || Response.error();
+        })
+    );
+    return;
+  }
+
   event.respondWith((async () => {
     const cached = await caches.match(event.request);
     if (cached) return cached;
@@ -41,25 +65,13 @@ self.addEventListener('fetch', event => {
     try {
       const response = await fetch(event.request);
 
-      if (
-        response.ok &&
-        new URL(event.request.url).origin === self.location.origin
-      ) {
+      if (response.ok && url.origin === self.location.origin) {
         const cache = await caches.open(CACHE_NAME);
         await cache.put(event.request, response.clone());
       }
 
       return response;
     } catch (error) {
-      if (event.request.mode === 'navigate') {
-        const offlinePage = new URL(
-          'index.html',
-          self.registration.scope
-        ).href;
-
-        return (await caches.match(offlinePage)) || Response.error();
-      }
-
       throw error;
     }
   })());
