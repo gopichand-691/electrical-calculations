@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-    <meta name="theme-color" content="#007bff">
+    <meta name="theme-color" content="#101820">
     <meta name="description" content="Offline electrical calculation tools and a custom meter test matrix.">
     <link rel="manifest" href="manifest.json">
     <title>Energy & Electrical Field Calculator Suite</title>
@@ -227,22 +227,92 @@
         button:focus,input:focus,select:focus{outline:3px solid #80bdff;outline-offset:1px}
         @media(max-width:520px){body{padding:6px}.calc-card{padding:13px}.input-inline-grid,.action-grid{grid-template-columns:1fr}.tab-btn{padding:11px 8px}.table-responsive table{min-width:650px}h2{font-size:22px}}
     </style>
+
+    <style id="dark-technician-theme">
+      :root {
+        color-scheme: dark;
+        --primary: #16C79A;
+        --bg: #101820;
+        --card-bg: #263746;
+        --text: #EAF2F5;
+        --line: #405565;
+        --muted: #a9bbc5;
+      }
+      html { background: #101820; }
+      body { background: #101820; color: #EAF2F5; padding-bottom: max(14px, env(safe-area-inset-bottom)); }
+      h2, .screen-title { color: #00D1A0; }
+      h3 { color: #EAF2F5; border-bottom-color: #405565; }
+      .tabs { background: #1a2934; border: 1px solid #334957; }
+      .tab-btn { color: #c0cdd4; }
+      .tab-btn.active { background: #16C79A; color: #101820; }
+      .topic-row { background: #263746; color: #EAF2F5; border-color: #405565; box-shadow: 0 3px 10px rgba(0,0,0,.18); }
+      .topic-row:active { background: #304b5b; }
+      .topic-number { background: #164f47; color: #00D1A0; }
+      .topic-arrow { color: #00D1A0; }
+      .back-home { background: #164f47; color: #00D1A0; }
+      .calc-card { background: #263746; border: 1px solid #344b5a; box-shadow: 0 6px 18px rgba(0,0,0,.2); }
+      label { color: #EAF2F5; }
+      input, select, textarea { background: #172630; color: #EAF2F5; border: 1px solid #526a79; }
+      input::placeholder, textarea::placeholder { color: #91a4af; }
+      button.calc-trigger { background: #16C79A; color: #101820; }
+      button.calc-trigger:active { background: #00D1A0; }
+      .results { background: #173b3a; color: #EAF2F5; border-left-color: #00D1A0; }
+      .sub-section { background: #1b2c37; border-color: #526a79; }
+      .q-box { background: #1b2c37; border-color: #526a79; color: #EAF2F5; }
+      .q-box.highlight { background: #164f47; border-color: #16C79A; color: #baffeb; }
+      .formula-box { background: #1b2c37; border-color: #3d6972; color: #EAF2F5; }
+      .formula-title { color: #00D1A0; }
+      .formula-equation { background: #101820; color: #baffeb; }
+      th, td { border-color: #405565; }
+      th { background: #1b2c37; color: #EAF2F5; }
+      tr:nth-child(even) { background: #20323e; }
+      tr:nth-child(odd) { background: #263746; }
+      .section-header { background: #172630 !important; color: #EAF2F5 !important; }
+      .section-header-extra { background: #126e58 !important; color: #EAF2F5 !important; }
+      .highlight-pulse { color: #00D1A0; }
+      .highlight-limit { color: #ff858e; }
+      .app-note { background: #3b3420; color: #fff0bd; border-left-color: #e0b341; }
+      .small-label { color: #b5c5cd; }
+      .status-pill { background: #164f47; color: #baffeb; }
+      .custom-row td { background: #173b32 !important; }
+      button:focus, input:focus, select:focus, textarea:focus { outline: 3px solid #00D1A0; outline-offset: 2px; }
+      a { color: #00D1A0; }
+      @media (prefers-reduced-motion: no-preference) {
+        .topic-row, .tab-btn, button.calc-trigger { transition: background-color .15s ease, transform .15s ease; }
+        .topic-row:active, button.calc-trigger:active { transform: scale(.99); }
+      }
+    </style>
+
+
+<style id="screenshot-inspired-ui">
+:root{--primary:#00d1a0;--bg:#031522;--card-bg:#062236;--text:#eef6ff;--line:#006b85;--muted:#9ac8f7;color-scheme:dark}
+html,body{background:radial-gradient(ellipse at 50% 20%,#062b40 0,#031522 58%,#02101a 100%);color:#eef6ff}body{padding:0 0 calc(100px + env(safe-area-inset-bottom));font-family:Roboto,-apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif}.container{max-width:760px;padding:0 12px;margin:0 auto}.app-header{position:sticky;top:0;z-index:20;display:flex;align-items:center;gap:12px;padding:18px 16px 15px;background:rgba(2,18,30,.97);border-bottom:1px solid #006d88;border-radius:0 0 24px 24px;box-shadow:0 8px 26px #00101c}.menu-toggle,.search-toggle{border:0;background:transparent;color:#00e6b2;font-size:31px;min-width:38px;padding:3px;cursor:pointer}.brand-mark{font-size:55px;line-height:1;color:#00e6b2;text-shadow:0 0 20px #00d1a0;min-width:42px;text-align:center}.brand-copy{flex:1;min-width:0}.brand-title{font-size:clamp(20px,4.8vw,31px);font-weight:800;white-space:nowrap;letter-spacing:-.6px}.brand-title span,.app-footer strong span{color:#00d1a0}.brand-tagline{color:#a5ccf4;font-size:14px;margin-top:6px}.brand-tagline b{color:#00d1a0;margin:0 5px}.search-toggle{font-size:36px}.home-menu{display:grid;grid-template-columns:1fr;gap:16px;margin:18px 0 24px}.topic-row{position:relative;display:flex;align-items:center;gap:16px;width:100%;min-height:116px;padding:13px 14px 13px 16px;border:1px solid #007d99;border-radius:25px;background:linear-gradient(110deg,rgba(3,32,50,.98),rgba(4,39,58,.88));color:#f2f7ff;box-shadow:inset 0 0 0 1px rgba(0,209,160,.04),0 8px 20px rgba(0,0,0,.24);text-align:left}.topic-row:active{background:#0a3b50}.topic-icon{display:flex;align-items:center;justify-content:center;flex:0 0 82px;height:82px;border-radius:23px;background:linear-gradient(145deg,#00b99a,#007f78);color:white;font-size:42px;font-weight:700;box-shadow:0 0 18px rgba(0,209,160,.12)}.topic-copy{display:flex;flex-direction:column;gap:7px;flex:1;min-width:0}.topic-name{font-size:clamp(16px,4vw,22px);line-height:1.2;font-weight:800;white-space:normal}.topic-desc{font-size:clamp(12px,3.3vw,16px);font-weight:400;color:#a4ccf8;line-height:1.35}.topic-arrow{font-size:38px;color:#00e6b2;line-height:1}.favorite-toggle{position:absolute;right:42px;top:7px;color:#ffd84a;font-size:20px;z-index:2;padding:3px;line-height:1}.favorite-toggle.saved{color:#ffd84a}.topic-arrow{margin-left:0}.topic-toolbar{margin:14px 0}.back-home{background:#073b47;color:#00e6b2;border:1px solid #087b88;border-radius:14px}.screen-title{color:#00d1a0}.calc-card{background:#082538;border:1px solid #07536a;border-radius:20px;color:#eef6ff;box-shadow:0 8px 22px rgba(0,0,0,.2)}.calc-card h3{color:#eef6ff}.tabs{background:#061d2b;border-color:#07536a}.tab-btn.active{background:#00c99b;color:#031522}.bottom-nav{position:fixed;z-index:18;bottom:env(safe-area-inset-bottom,0);left:12px;right:12px;max-width:736px;margin:auto;display:flex;justify-content:space-around;gap:4px;padding:10px 8px 8px;background:rgba(2,20,33,.97);border:1px solid #006b85;border-radius:28px;box-shadow:0 -6px 24px rgba(0,209,160,.08);backdrop-filter:blur(12px)}.nav-item{flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;border:0;background:transparent;color:#a5ccf4;padding:3px 4px;font-size:27px}.nav-item small{font-size:13px;font-weight:700}.nav-item.active{color:#00e6b2;text-shadow:0 0 12px rgba(0,209,160,.4)}.nav-item.active span{filter:drop-shadow(0 0 7px #00d1a0)}.page-panel{display:none;max-width:736px;margin:20px auto;padding:24px 18px 130px;color:#eef6ff}.page-panel.visible{display:block}.page-panel h2{color:#00d1a0;text-align:left}.panel-hint,.page-panel p{color:#a5ccf4;line-height:1.6}.empty-favorites{border:1px dashed #087b88;border-radius:18px;padding:20px;text-align:center}.about-highlight{background:#082538;border-left:3px solid #00d1a0;border-radius:10px;padding:14px}.drawer-shade{display:none;position:fixed;inset:0;z-index:28;background:rgba(0,0,0,.58)}.drawer-shade.open{display:block}.app-drawer{position:fixed;z-index:29;inset:0 auto 0 0;width:min(82vw,320px);padding:22px 16px;background:#041a29;border-right:1px solid #087b88;box-shadow:15px 0 35px rgba(0,0,0,.4);transform:translateX(-105%);transition:transform .2s ease;display:flex;flex-direction:column;gap:10px}.app-drawer.open{transform:translateX(0)}.drawer-brand{display:flex;align-items:center;gap:12px;padding:14px 6px 22px;border-bottom:1px solid #174254;margin-bottom:10px}.drawer-brand>span{font-size:44px;color:#00d1a0}.drawer-brand strong,.drawer-brand small{display:block}.drawer-brand small{color:#9ac8f7;margin-top:5px}.app-drawer button{border:0;border-radius:12px;text-align:left;padding:15px;background:#082538;color:#eef6ff;font-size:17px}.drawer-foot{margin-top:auto;color:#8fbce8;font-size:13px;padding:16px 5px}.search-panel{display:none;padding:10px 14px;background:#041a29}.search-panel.open{display:block}.search-panel input{width:100%;box-sizing:border-box;border-radius:14px;padding:13px;background:#082538;color:#eef6ff;border:1px solid #087b88}.app-footer{display:flex;align-items:center;gap:12px;max-width:736px;margin:20px auto 0;padding:20px 16px 24px;border-top:1px solid #07536a;color:#eef6ff}.footer-logo{width:55px;height:55px;border:2px solid #00d1a0;border-radius:50%;display:grid;place-items:center;color:#00d1a0;font-size:35px}.app-footer strong{display:block;font-size:15px}.app-footer small{display:block;color:#a5ccf4;font-size:11px;margin-top:5px}.footer-note{margin-left:auto;text-align:right;color:#a5ccf4;font-size:11px;max-width:130px}.footer-note span{color:#00d1a0;font-size:18px;margin-left:4px}@media(min-width:600px){.home-menu{grid-template-columns:1fr 1fr}.topic-row{min-height:130px}.topic-icon{flex-basis:65px;height:65px}.topic-desc{font-size:13px}.topic-name{font-size:17px}}@media(max-width:380px){.app-header{gap:7px;padding:14px 9px}.brand-mark{font-size:42px;min-width:30px}.brand-title{font-size:18px}.brand-tagline{font-size:11px}.topic-row{gap:10px;min-height:94px;padding:10px}.topic-icon{flex-basis:58px;height:58px;border-radius:17px;font-size:30px}.topic-name{font-size:15px}.topic-desc{font-size:12px}.favorite-toggle{right:35px}.topic-arrow{font-size:30px}}
+</style>
+
 </head>
 <body>
 
+<div class="app-header">
+  <button class="menu-toggle" aria-label="Open menu" onclick="toggleDrawer()">☰</button>
+  <div class="brand-mark" aria-hidden="true">ϟ</div>
+  <div class="brand-copy"><div class="brand-title">Electrical <span>Calculations</span></div><div class="brand-tagline">Quick <b>•</b> Accurate <b>•</b> Reliable</div></div>
+  <button class="search-toggle" aria-label="Search calculators" onclick="toggleSearch()">⌕</button>
+</div>
+<div class="drawer-shade" id="drawer-shade" onclick="toggleDrawer(false)"></div>
+<aside class="app-drawer" id="app-drawer" aria-label="App menu"><div class="drawer-brand"><span>ϟ</span><div><strong>Electrical Calculations</strong><small>Your engineering companion</small></div></div><button onclick="showPage('home')">⌂ &nbsp; Home</button><button onclick="showPage('favorites')">☆ &nbsp; Favorites</button><button onclick="showPage('about')">ⓘ &nbsp; About</button><div class="drawer-foot">Made for Engineers &amp; Students</div></aside>
+<div class="search-panel" id="search-panel"><input id="calculator-search" type="search" placeholder="Search calculators…" oninput="filterCalculators(this.value)"></div>
 <div class="container">
-    <h2>Electrical Calculations</h2>
     
     <div id="home-menu" class="home-menu">
-        <button class="topic-row" onclick="switchTab('transformer','Transformer / PQ')"><span class="topic-number">01</span><span class="topic-name">Transformer / PQ</span><span class="topic-arrow">›</span></button>
-        <button class="topic-row" onclick="switchTab('cap_curr','Capacity to Current')"><span class="topic-number">02</span><span class="topic-name">Capacity to Current</span><span class="topic-arrow">›</span></button>
-        <button class="topic-row" onclick="switchTab('power','Power Calculations')"><span class="topic-number">03</span><span class="topic-name">Power Calculations</span><span class="topic-arrow">›</span></button>
-        <button class="topic-row" onclick="switchTab('consumption','Energy Consumption')"><span class="topic-number">04</span><span class="topic-name">Energy Consumption</span><span class="topic-arrow">›</span></button>
-        <button class="topic-row" onclick="switchTab('ohms','Ohm’s Law / Impedance')"><span class="topic-number">05</span><span class="topic-name">Ohm’s Law / Impedance</span><span class="topic-arrow">›</span></button>
-        <button class="topic-row" onclick="switchTab('meter','4-Quadrant Matrix')"><span class="topic-number">06</span><span class="topic-name">4-Quadrant Matrix</span><span class="topic-arrow">›</span></button>
-        <button class="topic-row" onclick="switchTab('ctvt','CT / VT Testing')"><span class="topic-number">07</span><span class="topic-name">CT / VT Testing</span><span class="topic-arrow">›</span></button>
-        <button class="topic-row" onclick="switchTab('vec_calc','Vector Calculator')"><span class="topic-number">08</span><span class="topic-name">Vector Calculator</span><span class="topic-arrow">›</span></button>
-        <button class="topic-row" onclick="switchTab('matrix148','148-Parameter Matrix')"><span class="topic-number">09</span><span class="topic-name">148-Parameter Matrix</span><span class="topic-arrow">›</span></button>
+        <button class="topic-row" data-topic="transformer" onclick="switchTab('transformer','Transformer / PQ')"><span class="topic-icon" aria-hidden="true">ϟ</span><span class="topic-copy"><span class="topic-name">Transformer / PQ</span><span class="topic-desc">Transformer ratios, reflected values and PQ conversion</span></span><span class="topic-arrow" aria-hidden="true">›</span></button>
+        <button class="topic-row" data-topic="cap_curr" onclick="switchTab('cap_curr','Capacity to Current')"><span class="topic-icon" aria-hidden="true">A</span><span class="topic-copy"><span class="topic-name">Capacity to Current</span><span class="topic-desc">Convert electrical capacity into current</span></span><span class="topic-arrow" aria-hidden="true">›</span></button>
+        <button class="topic-row" data-topic="power" onclick="switchTab('power','Power Calculations')"><span class="topic-icon" aria-hidden="true">∿</span><span class="topic-copy"><span class="topic-name">Power Calculations</span><span class="topic-desc">Calculate power, voltage, current and power factor</span></span><span class="topic-arrow" aria-hidden="true">›</span></button>
+        <button class="topic-row" data-topic="consumption" onclick="switchTab('consumption','Energy Consumption')"><span class="topic-icon" aria-hidden="true">₹</span><span class="topic-copy"><span class="topic-name">Energy Consumption</span><span class="topic-desc">Estimate energy usage and electrical cost</span></span><span class="topic-arrow" aria-hidden="true">›</span></button>
+        <button class="topic-row" data-topic="ohms" onclick="switchTab('ohms','Ohm’s Law / Impedance')"><span class="topic-icon" aria-hidden="true">Ω</span><span class="topic-copy"><span class="topic-name">Ohm’s Law / Impedance</span><span class="topic-desc">Explore voltage, current, resistance and impedance</span></span><span class="topic-arrow" aria-hidden="true">›</span></button>
+        <button class="topic-row" data-topic="meter" onclick="switchTab('meter','4-Quadrant Matrix')"><span class="topic-icon" aria-hidden="true">▦</span><span class="topic-copy"><span class="topic-name">4-Quadrant Matrix</span><span class="topic-desc">Review active and reactive energy quadrants</span></span><span class="topic-arrow" aria-hidden="true">›</span></button>
+        <button class="topic-row" data-topic="ctvt" onclick="switchTab('ctvt','CT / VT Testing')"><span class="topic-icon" aria-hidden="true">◎</span><span class="topic-copy"><span class="topic-name">CT / VT Testing</span><span class="topic-desc">Tools for current and voltage transformer testing</span></span><span class="topic-arrow" aria-hidden="true">›</span></button>
+        <button class="topic-row" data-topic="vec_calc" onclick="switchTab('vec_calc','Vector Calculator')"><span class="topic-icon" aria-hidden="true">∠</span><span class="topic-copy"><span class="topic-name">Vector Calculator</span><span class="topic-desc">Work with electrical vectors and phase angles</span></span><span class="topic-arrow" aria-hidden="true">›</span></button>
+        <button class="topic-row" data-topic="matrix148" onclick="switchTab('matrix148','148-Parameter Matrix')"><span class="topic-icon" aria-hidden="true">☷</span><span class="topic-copy"><span class="topic-name">148-Parameter Matrix</span><span class="topic-desc">Build and review the meter test matrix</span></span><span class="topic-arrow" aria-hidden="true">›</span></button>
     </div>
     <div id="topic-toolbar" class="topic-toolbar">
         <button type="button" class="back-home" onclick="backHome()">← All calculation tabs</button>
@@ -633,14 +703,27 @@
     </div>
 </div>
 
+<div class="bottom-nav" id="bottom-nav"><button class="nav-item active" data-page="home" onclick="showPage('home')"><span>⌂</span><small>Home</small></button><button class="nav-item" data-page="favorites" onclick="showPage('favorites')"><span>☆</span><small>Favorites</small></button><button class="nav-item" data-page="about" onclick="showPage('about')"><span>ⓘ</span><small>About</small></button></div>
+<div class="page-panel" id="favorites-panel"><h2>★ Favorites</h2><p class="panel-hint">Your saved calculators will appear here. Tap the ☆ on any calculator card to save it.</p><div id="favorites-list"></div></div>
+<div class="page-panel" id="about-panel"><h2>About Electrical Calculations</h2><p>Quick, practical electrical calculation and testing tools for engineers, technicians and students.</p><p class="about-highlight">Designed for everyday electrical engineering work. Verify critical results against applicable standards and equipment documentation.</p></div>
+<footer class="app-footer"><div class="footer-logo">ϟ</div><div><strong>Electrical <span>Calculations</span></strong><small>Your Electrical Engineering Companion</small></div><div class="footer-note">Made for Engineers &amp; Students <span>♥</span></div></footer>
 <script>
     let currentTopicId = null;
+    let currentPage = 'home';
+    function toggleDrawer(force){ const d=document.getElementById('app-drawer'), shade=document.getElementById('drawer-shade'); const open=typeof force==='boolean'?force:!d.classList.contains('open'); d.classList.toggle('open',open); shade.classList.toggle('open',open); }
+    function toggleSearch(){ const p=document.getElementById('search-panel'); p.classList.toggle('open'); if(p.classList.contains('open')) document.getElementById('calculator-search').focus(); else {document.getElementById('calculator-search').value='';filterCalculators('');} }
+    function filterCalculators(q){ const term=(q||'').toLowerCase(); document.querySelectorAll('#home-menu .topic-row').forEach(row=>row.style.display=row.textContent.toLowerCase().includes(term)?'flex':'none'); if(term) showPage('home'); }
+    function showPage(page){ currentPage=page; toggleDrawer(false); document.getElementById('home-menu').style.display=page==='home'?'grid':'none'; document.getElementById('favorites-panel').classList.toggle('visible',page==='favorites'); document.getElementById('about-panel').classList.toggle('visible',page==='about'); document.getElementById('topic-toolbar').style.display='none'; document.querySelectorAll('.calc-card').forEach(c=>c.classList.remove('active')); document.querySelectorAll('.nav-item').forEach(b=>b.classList.toggle('active',b.dataset.page===page)); if(page==='favorites') renderFavorites(); window.scrollTo(0,0); }
+    function toggleFavorite(id){ let f=[]; try{f=JSON.parse(localStorage.getItem('ec-favorites')||'[]')}catch(e){}; f=f.includes(id)?f.filter(x=>x!==id):[...f,id]; localStorage.setItem('ec-favorites',JSON.stringify(f)); renderFavorites(); }
+    function renderFavorites(){ let f=[]; try{f=JSON.parse(localStorage.getItem('ec-favorites')||'[]')}catch(e){}; const list=document.getElementById('favorites-list'); list.innerHTML=''; f.forEach(id=>{const row=document.querySelector('#home-menu [data-topic="'+id+'"]'); if(row){const clone=row.cloneNode(true); clone.style.display='flex'; clone.onclick=()=>switchTab(id,row.querySelector('.topic-name').textContent); list.appendChild(clone)}}); if(!list.children.length) list.innerHTML='<p class="empty-favorites">No favorites yet. Tap ☆ on a calculator card to add one.</p>'; }
+    function addFavoriteControls(){ document.querySelectorAll('#home-menu .topic-row').forEach(row=>{if(row.querySelector('.favorite-toggle'))return; const id=row.dataset.topic; const star=document.createElement('span'); star.className='favorite-toggle'; star.textContent='☆'; star.setAttribute('role','button'); star.setAttribute('tabindex','0'); star.setAttribute('aria-label','Add to favorites'); star.onclick=(e)=>{e.stopPropagation();toggleFavorite(id);star.classList.toggle('saved');star.textContent=star.classList.contains('saved')?'★':'☆'}; star.onkeydown=(e)=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();star.click()}}; row.insertBefore(star,row.querySelector('.topic-arrow')); }); }
     function switchTab(tabId, title) {
         const card = document.getElementById(tabId);
         if (!card) return;
         document.querySelectorAll('.calc-card').forEach(item => item.classList.remove('active'));
         card.classList.add('active');
         document.getElementById('home-menu').style.display = 'none';
+        document.getElementById('favorites-panel').classList.remove('visible'); document.getElementById('about-panel').classList.remove('visible'); document.getElementById('bottom-nav').style.display='none';
         document.getElementById('topic-toolbar').style.display = 'block';
         document.getElementById('screen-title').textContent = title || card.querySelector('h3')?.textContent || 'Calculator';
         currentTopicId = tabId;
@@ -650,8 +733,11 @@
     }
     function backHome(fromPopState = false) {
         document.querySelectorAll('.calc-card').forEach(card => card.classList.remove('active'));
+    addFavoriteControls();
+    try{const favs=JSON.parse(localStorage.getItem('ec-favorites')||'[]');document.querySelectorAll('.favorite-toggle').forEach(star=>{const row=star.closest('.topic-row');if(favs.includes(row.dataset.topic)){star.classList.add('saved');star.textContent='★';}})}catch(e){}
         document.getElementById('topic-toolbar').style.display = 'none';
         document.getElementById('home-menu').style.display = 'grid';
+        document.getElementById('bottom-nav').style.display='flex';
         currentTopicId = null;
         if (!fromPopState && location.hash) history.pushState({ calculatorHome: true }, '', location.pathname + location.search);
         window.scrollTo(0, 0);
