@@ -64,6 +64,16 @@
             color: white;
             border-radius: 8px;
         }
+        /* Main menu: full-width rows */
+        .home-menu { display: grid; grid-template-columns: 1fr; gap: 9px; margin: 12px 0 18px; }
+        .topic-row { display: flex; align-items: center; gap: 12px; width: 100%; box-sizing: border-box; text-align: left; padding: 15px 14px; border: 1px solid #dbe3ec; border-radius: 10px; background: #fff; color: #263238; font-size: 15px; font-weight: 700; cursor: pointer; box-shadow: 0 2px 5px rgba(0,0,0,.04); }
+        .topic-row:active { background: #eef6ff; }
+        .topic-number { display: inline-flex; align-items: center; justify-content: center; min-width: 36px; height: 36px; border-radius: 8px; background: #e7f1ff; color: #007bff; font-size: 13px; }
+        .topic-name { flex: 1; }
+        .topic-arrow { color: #667788; font-size: 22px; }
+        .topic-toolbar { display: none; margin: 8px 0 14px; }
+        .back-home { border: 0; border-radius: 8px; padding: 11px 14px; background: #e7f1ff; color: #0056b3; font-weight: 700; font-size: 14px; cursor: pointer; }
+        .screen-title { margin: 10px 0 14px; color: var(--primary); font-size: 19px; font-weight: 800; }
         /* Calculator Cards */
         .calc-card {
             display: none;
@@ -223,20 +233,24 @@
 <div class="container">
     <h2>Electrical Calculations</h2>
     
-    <div class="tabs">
-        <button class="tab-btn active" onclick="switchTab('transformer')">TX / PQ</button>
-        <button class="tab-btn" onclick="switchTab('cap_curr')">Capacity to Current</button>
-        <button class="tab-btn" onclick="switchTab('power')">Power</button>
-        <button class="tab-btn" onclick="switchTab('consumption')">Consumption</button>
-        <button class="tab-btn" onclick="switchTab('ohms')">Ohm/Z</button>
-        <button class="tab-btn" onclick="switchTab('meter')">4-Quad Matrix</button>
-        <button class="tab-btn" onclick="switchTab('ctvt')">CT/VT Testing</button>
-        <button class="tab-btn" onclick="switchTab('vec_calc')">Vector Calc</button>
-        <button class="tab-btn" onclick="switchTab('matrix148')">148-Matrix</button>
+    <div id="home-menu" class="home-menu">
+        <button class="topic-row" onclick="switchTab('transformer','Transformer / PQ')"><span class="topic-number">01</span><span class="topic-name">Transformer / PQ</span><span class="topic-arrow">›</span></button>
+        <button class="topic-row" onclick="switchTab('cap_curr','Capacity to Current')"><span class="topic-number">02</span><span class="topic-name">Capacity to Current</span><span class="topic-arrow">›</span></button>
+        <button class="topic-row" onclick="switchTab('power','Power Calculations')"><span class="topic-number">03</span><span class="topic-name">Power Calculations</span><span class="topic-arrow">›</span></button>
+        <button class="topic-row" onclick="switchTab('consumption','Energy Consumption')"><span class="topic-number">04</span><span class="topic-name">Energy Consumption</span><span class="topic-arrow">›</span></button>
+        <button class="topic-row" onclick="switchTab('ohms','Ohm’s Law / Impedance')"><span class="topic-number">05</span><span class="topic-name">Ohm’s Law / Impedance</span><span class="topic-arrow">›</span></button>
+        <button class="topic-row" onclick="switchTab('meter','4-Quadrant Matrix')"><span class="topic-number">06</span><span class="topic-name">4-Quadrant Matrix</span><span class="topic-arrow">›</span></button>
+        <button class="topic-row" onclick="switchTab('ctvt','CT / VT Testing')"><span class="topic-number">07</span><span class="topic-name">CT / VT Testing</span><span class="topic-arrow">›</span></button>
+        <button class="topic-row" onclick="switchTab('vec_calc','Vector Calculator')"><span class="topic-number">08</span><span class="topic-name">Vector Calculator</span><span class="topic-arrow">›</span></button>
+        <button class="topic-row" onclick="switchTab('matrix148','148-Parameter Matrix')"><span class="topic-number">09</span><span class="topic-name">148-Parameter Matrix</span><span class="topic-arrow">›</span></button>
+    </div>
+    <div id="topic-toolbar" class="topic-toolbar">
+        <button type="button" class="back-home" onclick="backHome()">← All calculation tabs</button>
+        <div id="screen-title" class="screen-title"></div>
     </div>
 
     <!-- TRANSFORMER TAB -->
-    <div id="transformer" class="calc-card active">
+    <div id="transformer" class="calc-card">
         <h3>Transformer Parameters</h3>
         
         <div class="formula-box">
@@ -620,17 +634,37 @@
 </div>
 
 <script>
-    function switchTab(tabId) {
-        document.querySelectorAll('.calc-card').forEach(card => card.classList.remove('active'));
-        document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
-        document.getElementById(tabId).classList.add('active');
-        
-        if (window.event && window.event.currentTarget) { 
-            window.event.currentTarget.classList.add('active'); 
-        } else if (event && event.target) {
-            event.target.classList.add('active');
-        }
+    let currentTopicId = null;
+    function switchTab(tabId, title) {
+        const card = document.getElementById(tabId);
+        if (!card) return;
+        document.querySelectorAll('.calc-card').forEach(item => item.classList.remove('active'));
+        card.classList.add('active');
+        document.getElementById('home-menu').style.display = 'none';
+        document.getElementById('topic-toolbar').style.display = 'block';
+        document.getElementById('screen-title').textContent = title || card.querySelector('h3')?.textContent || 'Calculator';
+        currentTopicId = tabId;
+        // Add a history entry so Android's Back button returns to the complete menu.
+        if (!window.__openingFromPopstate) history.pushState({ calculatorTopic: tabId }, '', '#' + tabId);
+        window.scrollTo(0, 0);
     }
+    function backHome(fromPopState = false) {
+        document.querySelectorAll('.calc-card').forEach(card => card.classList.remove('active'));
+        document.getElementById('topic-toolbar').style.display = 'none';
+        document.getElementById('home-menu').style.display = 'grid';
+        currentTopicId = null;
+        if (!fromPopState && location.hash) history.pushState({ calculatorHome: true }, '', location.pathname + location.search);
+        window.scrollTo(0, 0);
+    }
+    window.addEventListener('popstate', function () {
+        if (currentTopicId) {
+            window.__openingFromPopstate = true;
+            backHome(true);
+            window.__openingFromPopstate = false;
+        }
+    });
+    // Always start on the menu, including when the app is reopened.
+    document.querySelectorAll('.calc-card').forEach(card => card.classList.remove('active'));
 
     function showResult(id, htmlContent) {
         let div = document.getElementById(id); 
