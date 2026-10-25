@@ -525,7 +525,8 @@ a{color:#69B6AA}
 </div>
 <div id="settings-panel" class="page-panel">
  <button class="back-home" onclick="showPage('home')">← Main menu</button><h2>Settings</h2>
- <div class="calc-card" style="display:block"><h3>Data &amp; Backup</h3><p class="panel-hint">Daily records are stored in this browser on this device.</p><button class="calc-trigger" onclick="exportDailyJSON()">Export Backup (JSON)</button><label class="input-group" style="margin-top:16px">Restore backup file</label><input type="file" id="restore-file" accept=".json,application/json" onchange="importDailyJSON(event)"><button class="calc-trigger" style="background:#6c757d" onclick="if(confirm('Delete all saved daily records on this device?')){localStorage.removeItem('ec-daily-records');renderDailyRecords();alert('Daily records cleared.')}">Clear Daily Records</button></div>
+ <div class="calc-card" style="display:block"><h3>Data &amp; Backup</h3><p class="panel-hint">Daily records are stored in this browser on this device.</p><button class="calc-trigger" onclick="exportDailyJSON()">Export Backup (JSON)</button><label class="input-group" style="margin-top:16px">Restore backup file</label><input type="file" id="restore-file" accept=".json,.csv,.xlsx,.xls,application/json,text/csv,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.ms-excel" onchange="importDailyFile(event)"><button class="calc-trigger" style="background:#6c757d" onclick="if(confirm('Delete all saved daily records on this device?')){localStorage.removeItem('ec-daily-records');renderDailyRecords();alert('Daily records cleared.')}">Clear Daily Records</button></div>
+ <div class="calc-card" style="display:block"><h3>Open or Preview a File</h3><p class="panel-hint">Choose a file from your phone. Images, PDFs, text, CSV and JSON can be previewed here when your browser supports them. Other file types can be opened or downloaded by your device.</p><input type="file" id="general-file-input" accept="*/*" onchange="previewGeneralFile(event)" style="display:block;width:100%;margin:12px 0"><div id="general-file-info" class="panel-hint" aria-live="polite">No file selected.</div><div id="general-file-preview" style="margin-top:12px;overflow-wrap:anywhere"></div></div>
  <div class="calc-card" style="display:block"><h3>About</h3><p>Electrical Calculations</p><p class="panel-hint">Dark Technician edition · 9 calculator tools · Daily Details</p></div>
 </div>
 
@@ -1112,7 +1113,81 @@ a{color:#69B6AA}
     function exportDailyJSON(){const blob=new Blob([JSON.stringify(getDailyRecords(),null,2)],{type:'application/json'});downloadDaily(blob,'electrical-daily-details-backup.json');}
     function exportDailyCSV(){const rows=getDailyRecords();const esc=v=>'"'+String(v??'').replace(/"/g,'""')+'"';const csv=[dailyKeys.map(esc).join(','),...rows.map(r=>dailyKeys.map(k=>esc(r[k])).join(','))].join('\r\n');downloadDaily(new Blob([csv],{type:'text/csv;charset=utf-8'}),'electrical-daily-details.csv');}
     function downloadDaily(blob,name){const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000);}
-    function importDailyJSON(e){const file=e.target.files[0];if(!file)return;const reader=new FileReader();reader.onload=()=>{try{const rows=JSON.parse(reader.result);if(!Array.isArray(rows))throw Error('Invalid');setDailyRecords(rows);renderDailyRecords();alert('Backup restored.');}catch(err){alert('Could not read backup file.');}};reader.readAsText(file);}
+    function normalizeImportHeader(value){return String(value??'').toLowerCase().replace(/[^a-z0-9]/g,'');}
+    function parseImportCSV(text){
+      const rows=[];let row=[],field='',quoted=false;
+      for(let i=0;i<text.length;i++){
+        const c=text[i];
+        if(quoted){if(c==='"'&&text[i+1]==='"'){field+='"';i++;}else if(c==='"'){quoted=false;}else{field+=c;}}
+        else if(c==='"'){quoted=true;}else if(c===','){row.push(field);field='';}else if(c==='\n'){row.push(field.replace(/\r$/,''));rows.push(row);row=[];field='';}else{field+=c;}
+      }
+      if(field.length||row.length){row.push(field.replace(/\r$/,''));rows.push(row);}
+      return rows.filter(r=>r.some(v=>String(v).trim()!==''));
+    }
+    function mapImportedRows(rows){
+      if(!Array.isArray(rows)||!rows.length)throw Error('The selected file contains no records.');
+      const headers=Array.isArray(rows[0])?rows[0].map(normalizeImportHeader):Object.keys(rows[0]||{});
+      const isArrayRows=Array.isArray(rows[0]);
+      const keyMap=new Map(dailyKeys.map(k=>[normalizeImportHeader(k),k]));
+      let matched=0;
+      const mappedHeaders=isArrayRows?headers.map(h=>{const k=keyMap.get(h);if(k)matched++;return k||null;}):null;
+      let sourceRows=rows;
+      if(isArrayRows){
+        if(!matched)throw Error('No matching Daily Details column headings were found. Use an exported Daily Details CSV or JSON backup.');
+        sourceRows=rows.slice(1).map(values=>{const obj={};mappedHeaders.forEach((k,i)=>{if(k)obj[k]=values[i]??'';});return obj;});
+      }else{
+        sourceRows=rows.map(source=>{const obj={};Object.keys(source||{}).forEach(h=>{const k=keyMap.get(normalizeImportHeader(h));if(k){obj[k]=source[h];matched++;}});return obj;});
+        if(!matched)throw Error('No matching Daily Details fields were found in this file.');
+      }
+      const result=sourceRows.filter(r=>r&&Object.values(r).some(v=>String(v??'').trim()!=='')).map((r,i)=>{const out={};dailyKeys.forEach(k=>{out[k]=r[k]===undefined?'':String(r[k]??'');});out._id='import-'+Date.now()+'-'+i+'-'+Math.random().toString(36).slice(2,7);return out;});
+      if(!result.length)throw Error('No usable Daily Details records were found.');
+      return result;
+    }
+    function commitImportedDailyRows(imported){
+      const hasSaved=localStorage.getItem('ec-daily-records')!==null;
+      let current=getDailyRecords();
+      if(!hasSaved)current=[];
+      let mode='replace';
+      if(hasSaved&&current.length){
+        const choice=prompt('Your existing Daily Details records will be kept unless you choose otherwise.\nType ADD to keep existing records and add imported records.\nType REPLACE to replace existing records with imported records.\nType CANCEL to do nothing.','ADD');
+        if(!choice||choice.trim().toUpperCase()==='CANCEL')return;
+        mode=choice.trim().toLowerCase();
+        if(mode!=='add'&&mode!=='replace'){alert('No changes made. Please import again and type ADD, REPLACE, or CANCEL.');return;}
+      }
+      const finalRows=mode==='add'?current.concat(imported):imported;
+      if(!confirm('Ready to '+(mode==='add'?'ADD '+imported.length+' imported record(s) to your existing records':'REPLACE existing Daily Details records with '+imported.length+' imported record(s)')+'?\n\nThis action changes Daily Details stored on this device. Continue?'))return;
+      try{setDailyRecords(finalRows);renderDailyRecords();updateDashboard();alert('Import successful. '+imported.length+' record(s) imported.');}
+      catch(err){alert('Import could not be saved. Your previous data should remain unchanged. Export a backup and check available device storage.');}
+    }
+    function loadSheetJS(){return new Promise((resolve,reject)=>{if(window.XLSX){resolve();return;}const script=document.createElement('script');script.src='https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js';script.onload=()=>window.XLSX?resolve():reject(Error('Excel reader did not load.'));script.onerror=()=>reject(Error('Excel import needs an internet connection the first time. JSON and CSV imports work without this library.'));document.head.appendChild(script);});}
+    async function importDailyFile(e){
+      const file=e.target.files&&e.target.files[0];if(!file)return;
+      try{
+        const ext=(file.name.split('.').pop()||'').toLowerCase();let imported;
+        if(ext==='json'||file.type==='application/json'){
+          const parsed=JSON.parse(await file.text());
+          const rows=Array.isArray(parsed)?parsed:(Array.isArray(parsed.records)?parsed.records:(Array.isArray(parsed.dailyRecords)?parsed.dailyRecords:null));
+          if(!rows)throw Error('This JSON file is not a compatible Daily Details backup.');
+          imported=mapImportedRows(rows);
+        }else if(ext==='csv'||file.type==='text/csv'){
+          imported=mapImportedRows(parseImportCSV(await file.text()));
+        }else if(ext==='xlsx'||ext==='xls'){
+          await loadSheetJS();const data=new Uint8Array(await file.arrayBuffer());const wb=XLSX.read(data,{type:'array'});const first=wb.SheetNames[0];if(!first)throw Error('No worksheet was found.');imported=mapImportedRows(XLSX.utils.sheet_to_json(wb.Sheets[first],{header:1,defval:''}));
+        }else{throw Error('For Daily Details import, choose a compatible JSON backup, CSV file, or Excel .xlsx/.xls spreadsheet. Other files can be selected in the Open or Preview a File section.');}
+        commitImportedDailyRows(imported);
+      }catch(err){alert('Import failed: '+(err&&err.message?err.message:'The file could not be read.'));}
+      finally{e.target.value='';}
+    }
+    function previewGeneralFile(e){
+      const file=e.target.files&&e.target.files[0];const info=document.getElementById('general-file-info');const box=document.getElementById('general-file-preview');if(!file||!info||!box)return;
+      box.innerHTML='';info.textContent=file.name+' · '+(file.type||'Unknown file type')+' · '+(file.size<1024?file.size+' bytes':(file.size/1024).toFixed(1)+' KB');
+      const url=URL.createObjectURL(file);const ext=(file.name.split('.').pop()||'').toLowerCase();
+      if(file.type.startsWith('image/')){const img=document.createElement('img');img.src=url;img.alt=file.name;img.style.maxWidth='100%';img.style.maxHeight='65vh';img.style.borderRadius='10px';box.appendChild(img);}
+      else if(file.type==='application/pdf'||ext==='pdf'){const frame=document.createElement('iframe');frame.src=url;frame.title=file.name;frame.style.width='100%';frame.style.height='65vh';frame.style.border='0';box.appendChild(frame);}
+      else if(file.type.startsWith('text/')||['txt','csv','json','md','log','xml'].includes(ext)){const pre=document.createElement('pre');pre.style.whiteSpace='pre-wrap';pre.style.overflowWrap='anywhere';pre.style.maxHeight='60vh';pre.style.overflow='auto';file.text().then(t=>pre.textContent=t.slice(0,200000)).catch(()=>pre.textContent='Could not read this text file.');box.appendChild(pre);}
+      else{const p=document.createElement('p');p.textContent='This file type cannot be previewed directly here. Use the button below to open or save it with your device.';box.appendChild(p);}
+      const link=document.createElement('a');link.href=url;link.target='_blank';link.rel='noopener';link.textContent='Open selected file';link.style.display='inline-block';link.style.margin='8px 0';link.style.padding='10px 12px';link.style.background='#167d89';link.style.color='#fff';link.style.borderRadius='8px';link.style.textDecoration='none';box.appendChild(link);
+    }
     updateDashboard();
     function showPage(page, fromPopState=false){
       if(!fromPopState && page!==currentPage){ if(page==='home'){history.replaceState({mainPage:'home',ecNavigationReady:true},'',location.pathname+location.search);}else{history.pushState({mainPage:page},'',location.pathname+location.search+'#page-'+page);} }
