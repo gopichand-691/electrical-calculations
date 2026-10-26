@@ -1,5 +1,5 @@
 
-const CACHE_NAME = 'pgc-electricals-v2';
+const CACHE_NAME = 'pgc-electricals-v4';
 
 const APP_SHELL = [
   './',
