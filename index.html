@@ -146,8 +146,13 @@
             text-align: center;
             font-weight: bold;
         }
-        .q-box { padding: 10px; border: 2px solid #ccc; border-radius: 6px; background: #fff; font-size: 11px; }
-        .q-box.highlight { background: #d4edda; border-color: #28a745; color: #155724; }
+        .q-box { padding: 10px; border: 2px solid #ccc; border-radius: 6px; background: #fff; font-size: 11px; transition: background-color .2s, border-color .2s, box-shadow .2s; }
+        .q-box.highlight { background: #fff176; border: 3px solid #087f23; color: #123b18; animation: quadrantBlink .75s ease-in-out infinite; box-shadow: 0 0 0 3px rgba(8,127,35,.18); }
+        @keyframes quadrantBlink {
+            0%, 100% { background-color: #fff176; box-shadow: 0 0 0 3px rgba(8,127,35,.18); }
+            50% { background-color: #a5f3a5; box-shadow: 0 0 0 7px rgba(8,127,35,.32); }
+        }
+        @media (prefers-reduced-motion: reduce) { .q-box.highlight { animation: none; } }
 
         /* Formula Card Layout */
         .formula-box {
@@ -681,7 +686,8 @@ button.calc-trigger,.primary-btn,.btn-primary{background:#0878d1!important;color
     <button class="topic-row" onclick="alert('Fluke Calculations will be added in a future update.')"><span class="topic-icon">🔧</span><span class="topic-name">Fluke Calculations</span><span class="topic-arrow">›</span></button>
   </div>
   <div id="submenu-transformers-group" class="category-submenu"><button class="menu-back" onclick="backCategory()">← Calculator categories</button>
-    <button class="topic-row" data-topic="consumption" onclick="switchTab('consumption','Energy Consumption')"><span class="topic-icon">ϟ</span><span class="topic-name">Energy Consumption</span><span class="topic-arrow">›</span></button>
+    <button class="topic-row" data-topic="transformer-power" onclick="switchTab('transformer-power','Power')"><span class="topic-icon" aria-hidden="true">ϟ</span><span class="topic-copy"><span class="topic-name">Power</span><span class="topic-desc">Transformer input, output, active, apparent and reactive power</span></span><span class="topic-arrow" aria-hidden="true">›</span></button>
+    <button class="topic-row" data-topic="consumption" onclick="switchTab('consumption','Energy')"><span class="topic-icon" aria-hidden="true">⚡</span><span class="topic-copy"><span class="topic-name">Energy</span><span class="topic-desc">Energy formulas, explanations and consumption calculator</span></span><span class="topic-arrow" aria-hidden="true">›</span></button>
     <button class="topic-row" data-topic="ohms" onclick="switchTab('ohms','Ohm’s Law')"><span class="topic-icon">Ω</span><span class="topic-name">Ohm’s Law</span><span class="topic-arrow">›</span></button>
   </div>
 </div>
@@ -834,9 +840,37 @@ button.calc-trigger,.primary-btn,.btn-primary{background:#0878d1!important;color
         <div id="res_power" class="results"></div>
     </div>
 
+    <!-- TRANSFORMER POWER TAB -->
+    <div id="transformer-power" class="calc-card">
+      <h3>Transformer Power — Formulas & Calculator</h3>
+      <p>Enter values in the formula box you need, then tap Calculate. Use line voltage and line current for the balanced three-phase formulas below.</p>
+      <div class="formula-box"><div class="formula-title">1. Single-Phase Active Power</div><div class="formula-equation">P = V × I × PF</div><p>Voltage in volts, current in amperes, power factor from 0 to 1. Result in W and kW.</p><div class="input-inline-grid"><div class="input-group"><label>Voltage V (V)</label><input type="number" id="tp_1_v" min="0" step="any" placeholder="e.g. 230"></div><div class="input-group"><label>Current I (A)</label><input type="number" id="tp_1_i" min="0" step="any" placeholder="e.g. 10"></div></div><div class="input-group"><label>Power Factor (0–1)</label><input type="number" id="tp_1_pf" min="0" max="1" step="any" placeholder="e.g. 0.85"></div><button class="calc-trigger" onclick="transformerPowerSolve('single')">Calculate Active Power</button><div id="tp_res_single" class="results"></div></div>
+      <div class="formula-box"><div class="formula-title">2. Three-Phase Active Power (Line Values)</div><div class="formula-equation">P = √3 × VL × IL × PF</div><p>Use line-to-line voltage (VL) and line current (IL). Result in W and kW.</p><div class="input-inline-grid"><div class="input-group"><label>Line Voltage VL (V)</label><input type="number" id="tp_3_v" min="0" step="any" placeholder="e.g. 415"></div><div class="input-group"><label>Line Current IL (A)</label><input type="number" id="tp_3_i" min="0" step="any" placeholder="e.g. 100"></div></div><div class="input-group"><label>Power Factor (0–1)</label><input type="number" id="tp_3_pf" min="0" max="1" step="any" placeholder="e.g. 0.8"></div><button class="calc-trigger" onclick="transformerPowerSolve('three')">Calculate Active Power</button><div id="tp_res_three" class="results"></div></div>
+      <div class="formula-box"><div class="formula-title">3. Three-Phase Apparent Power</div><div class="formula-equation">S = √3 × VL × IL</div><p>Result in VA and kVA. No power factor is needed.</p><div class="input-inline-grid"><div class="input-group"><label>Line Voltage VL (V)</label><input type="number" id="tp_s_v" min="0" step="any" placeholder="Line voltage"></div><div class="input-group"><label>Line Current IL (A)</label><input type="number" id="tp_s_i" min="0" step="any" placeholder="Line current"></div></div><button class="calc-trigger" onclick="transformerPowerSolve('apparent')">Calculate Apparent Power</button><div id="tp_res_apparent" class="results"></div></div>
+      <div class="formula-box"><div class="formula-title">4. Three-Phase Reactive Power</div><div class="formula-equation">Q = √3 × VL × IL × sin(φ)</div><p>Enter power factor; sin(φ) = √(1 − PF²). Result in var and kVAr.</p><div class="input-inline-grid"><div class="input-group"><label>Line Voltage VL (V)</label><input type="number" id="tp_q_v" min="0" step="any" placeholder="Line voltage"></div><div class="input-group"><label>Line Current IL (A)</label><input type="number" id="tp_q_i" min="0" step="any" placeholder="Line current"></div></div><div class="input-group"><label>Power Factor (0–1)</label><input type="number" id="tp_q_pf" min="0" max="1" step="any" placeholder="e.g. 0.8"></div><button class="calc-trigger" onclick="transformerPowerSolve('reactive')">Calculate Reactive Power</button><div id="tp_res_reactive" class="results"></div></div>
+      <div class="formula-box"><div class="formula-title">5. Transformer Output Power and Losses</div><div class="formula-equation">Losses = Input Power − Output Power</div><p>Enter input and output active power in kW. Values must use the same basis.</p><div class="input-inline-grid"><div class="input-group"><label>Input Power (kW)</label><input type="number" id="tp_loss_in" min="0" step="any" placeholder="Input kW"></div><div class="input-group"><label>Output Power (kW)</label><input type="number" id="tp_loss_out" min="0" step="any" placeholder="Output kW"></div></div><button class="calc-trigger" onclick="transformerPowerSolve('loss')">Calculate Output & Losses</button><div id="tp_res_loss" class="results"></div></div>
+      <div class="app-note"><strong>Notes</strong><br>• For three-phase calculations, use line voltage and line current together.<br>• Power factor must be between 0 and 1.<br>• Active power is measured in W/kW; apparent power in VA/kVA; reactive power in var/kVAr.<br>• Losses are valid only when input and output power refer to the same operating condition.</div>
+    </div>
+
     <!-- CONSUMPTION TAB -->
     <div id="consumption" class="calc-card">
-        <h3>Energy Consumption & Cost</h3>
+        <h3>Energy — Formulas & Calculator</h3>
+        <p>Enter your values in the relevant formula box, then tap its Calculate button. The answer appears inside that same box.</p>
+        <div class="formula-box energy-calc-box"><div class="formula-title">1. Energy from Power and Time</div><div class="formula-equation">E = P × t</div><p>Power in watts, time in seconds → energy in joules (J).</p><div class="input-inline-grid"><div class="input-group"><label>Power (W)</label><input type="number" id="en_pt_p" placeholder="e.g. 1000"></div><div class="input-group"><label>Time (seconds)</label><input type="number" id="en_pt_t" placeholder="e.g. 60"></div></div><button class="calc-trigger" onclick="energySolve('pt')">Calculate E</button><div id="en_res_pt" class="results"></div></div>
+        <div class="formula-box energy-calc-box"><div class="formula-title">2. Energy from Voltage, Current and Time</div><div class="formula-equation">E = V × I × t</div><p>Use volts, amperes and seconds → joules (J).</p><div class="input-inline-grid"><div class="input-group"><label>Voltage (V)</label><input type="number" id="en_vit_v" placeholder="Voltage"></div><div class="input-group"><label>Current (A)</label><input type="number" id="en_vit_i" placeholder="Current"></div></div><div class="input-group"><label>Time (seconds)</label><input type="number" id="en_vit_t" placeholder="Time"></div><button class="calc-trigger" onclick="energySolve('vit')">Calculate E</button><div id="en_res_vit" class="results"></div></div>
+        <div class="formula-box energy-calc-box"><div class="formula-title">3. Energy Using Current and Resistance</div><div class="formula-equation">E = I² × R × t</div><p>Current in amperes, resistance in ohms, time in seconds → joules.</p><div class="input-inline-grid"><div class="input-group"><label>Current (A)</label><input type="number" id="en_irt_i" placeholder="Current"></div><div class="input-group"><label>Resistance (Ω)</label><input type="number" id="en_irt_r" placeholder="Resistance"></div></div><div class="input-group"><label>Time (seconds)</label><input type="number" id="en_irt_t" placeholder="Time"></div><button class="calc-trigger" onclick="energySolve('irt')">Calculate E</button><div id="en_res_irt" class="results"></div></div>
+        <div class="formula-box energy-calc-box"><div class="formula-title">4. Energy Using Voltage and Resistance</div><div class="formula-equation">E = (V² × t) / R</div><p>Voltage in volts, resistance in ohms, time in seconds → joules.</p><div class="input-inline-grid"><div class="input-group"><label>Voltage (V)</label><input type="number" id="en_vrt_v" placeholder="Voltage"></div><div class="input-group"><label>Resistance (Ω)</label><input type="number" id="en_vrt_r" placeholder="Resistance"></div></div><div class="input-group"><label>Time (seconds)</label><input type="number" id="en_vrt_t" placeholder="Time"></div><button class="calc-trigger" onclick="energySolve('vrt')">Calculate E</button><div id="en_res_vrt" class="results"></div></div>
+        <div class="formula-box energy-calc-box"><div class="formula-title">5. Energy from Charge and Voltage</div><div class="formula-equation">E = Q × V</div><p>Charge in coulombs and voltage in volts → joules.</p><div class="input-inline-grid"><div class="input-group"><label>Charge (C)</label><input type="number" id="en_qv_q" placeholder="Charge"></div><div class="input-group"><label>Voltage (V)</label><input type="number" id="en_qv_v" placeholder="Voltage"></div></div><button class="calc-trigger" onclick="energySolve('qv')">Calculate E</button><div id="en_res_qv" class="results"></div></div>
+        <div class="formula-box energy-calc-box"><div class="formula-title">6. Electricity Units from Watts and Hours</div><div class="formula-equation">Energy (kWh) = W × hours / 1000</div><p>Result is kWh; 1 kWh equals 1 electricity unit.</p><div class="input-inline-grid"><div class="input-group"><label>Power (W)</label><input type="number" id="en_wh_w" placeholder="Power"></div><div class="input-group"><label>Time (hours)</label><input type="number" id="en_wh_h" placeholder="Hours"></div></div><button class="calc-trigger" onclick="energySolve('wh')">Calculate kWh</button><div id="en_res_wh" class="results"></div></div>
+        <div class="formula-box energy-calc-box"><div class="formula-title">7. Electricity Units from Kilowatts and Hours</div><div class="formula-equation">Energy (kWh) = kW × hours</div><div class="input-inline-grid"><div class="input-group"><label>Power (kW)</label><input type="number" id="en_kwh_kw" placeholder="Power"></div><div class="input-group"><label>Time (hours)</label><input type="number" id="en_kwh_h" placeholder="Hours"></div></div><button class="calc-trigger" onclick="energySolve('kwh')">Calculate kWh</button><div id="en_res_kwh" class="results"></div></div>
+        <div class="formula-box energy-calc-box"><div class="formula-title">8. Power from Energy and Time</div><div class="formula-equation">P = E / t</div><p>Energy in joules and time in seconds → watts.</p><div class="input-inline-grid"><div class="input-group"><label>Energy (J)</label><input type="number" id="en_pet_e" placeholder="Energy"></div><div class="input-group"><label>Time (seconds)</label><input type="number" id="en_pet_t" placeholder="Time"></div></div><button class="calc-trigger" onclick="energySolve('pet')">Calculate P</button><div id="en_res_pet" class="results"></div></div>
+        <div class="formula-box energy-calc-box"><div class="formula-title">9. DC / Resistive Power</div><div class="formula-equation">P = V × I</div><p>Voltage in volts × current in amperes → watts.</p><div class="input-inline-grid"><div class="input-group"><label>Voltage (V)</label><input type="number" id="en_pvi_v" placeholder="Voltage"></div><div class="input-group"><label>Current (A)</label><input type="number" id="en_pvi_i" placeholder="Current"></div></div><button class="calc-trigger" onclick="energySolve('pvi')">Calculate P</button><div id="en_res_pvi" class="results"></div></div>
+        <div class="formula-box energy-calc-box"><div class="formula-title">10. DC / Resistive Power from Current and Resistance</div><div class="formula-equation">P = I² × R</div><div class="input-inline-grid"><div class="input-group"><label>Current (A)</label><input type="number" id="en_pir_i" placeholder="Current"></div><div class="input-group"><label>Resistance (Ω)</label><input type="number" id="en_pir_r" placeholder="Resistance"></div></div><button class="calc-trigger" onclick="energySolve('pir')">Calculate P</button><div id="en_res_pir" class="results"></div></div>
+        <div class="formula-box energy-calc-box"><div class="formula-title">11. DC / Resistive Power from Voltage and Resistance</div><div class="formula-equation">P = V² / R</div><div class="input-inline-grid"><div class="input-group"><label>Voltage (V)</label><input type="number" id="en_pvr_v" placeholder="Voltage"></div><div class="input-group"><label>Resistance (Ω)</label><input type="number" id="en_pvr_r" placeholder="Resistance"></div></div><button class="calc-trigger" onclick="energySolve('pvr')">Calculate P</button><div id="en_res_pvr" class="results"></div></div>
+        <div class="formula-box energy-calc-box"><div class="formula-title">12. Single-Phase AC Real Power</div><div class="formula-equation">P = V × I × PF</div><p>Enter power factor (PF) between 0 and 1. Result in watts.</p><div class="input-inline-grid"><div class="input-group"><label>Voltage (V)</label><input type="number" id="en_1ph_v" placeholder="Voltage"></div><div class="input-group"><label>Current (A)</label><input type="number" id="en_1ph_i" placeholder="Current"></div></div><div class="input-group"><label>Power Factor (0–1)</label><input type="number" id="en_1ph_pf" step="0.01" placeholder="e.g. 0.85"></div><button class="calc-trigger" onclick="energySolve('1ph')">Calculate P</button><div id="en_res_1ph" class="results"></div></div>
+        <div class="formula-box energy-calc-box"><div class="formula-title">13. Balanced Three-Phase AC Real Power</div><div class="formula-equation">P = √3 × VL × IL × PF</div><p>Use line voltage (V), line current (A), and PF from 0 to 1. Result in watts.</p><div class="input-inline-grid"><div class="input-group"><label>Line Voltage VL (V)</label><input type="number" id="en_3ph_v" placeholder="Line voltage"></div><div class="input-group"><label>Line Current IL (A)</label><input type="number" id="en_3ph_i" placeholder="Line current"></div></div><div class="input-group"><label>Power Factor (0–1)</label><input type="number" id="en_3ph_pf" step="0.01" placeholder="e.g. 0.90"></div><button class="calc-trigger" onclick="energySolve('3ph')">Calculate P</button><div id="en_res_3ph" class="results"></div></div>
+        <div class="formula-box energy-calc-box"><div class="formula-title">Quick unit guide</div><p>Use seconds for joules and hours for kWh. 1 kWh = 1 electricity unit. For cost, use energy in kWh × tariff per unit.</p></div>
+        <h3>Energy Consumption & Cost Calculator</h3>
         
         <div class="formula-box">
             <div class="formula-title">Consumption Metrics:</div>
@@ -871,24 +905,11 @@ button.calc-trigger,.primary-btn,.btn-primary{background:#0878d1!important;color
     <div id="meter" class="calc-card">
         <h3>4-Quadrant Energy Meter Matrix</h3>
         
-        <div class="formula-box">
-            <div class="formula-title">Quadrant Conditions Vector Plane:</div>
-            • <b>Q1 (+P, +Q):</b> Import Inductive (Lag) | • <b>Q2 (-P, +Q):</b> Export Capacitive (Lead)<br>
-            • <b>Q3 (-P, -Q):</b> Export Inductive (Lag) | • <b>Q4 (+P, -Q):</b> Import Capacitive (Lead)
-        </div>
-
         <div class="input-group">
-            <label>Active Power Flow (P)</label>
-            <select id="qm_p_flow">
-                <option value="import_pos">Import (+)</option>
-                <option value="export_neg">Export (-)</option>
-            </select>
-        </div>
-        <div class="input-group">
-            <label>Reactive Power Flow (Q)</label>
+            <label>Reactive Power</label>
             <select id="qm_q_flow">
-                <option value="import_pos">Import (+)</option>
-                <option value="export_neg">Export (-)</option>
+                <option value="import_pos">Reactive (+)</option>
+                <option value="export_neg">Reactive (-)</option>
             </select>
         </div>
         <div class="input-group">
@@ -903,10 +924,10 @@ button.calc-trigger,.primary-btn,.btn-primary{background:#0878d1!important;color
         <div id="res_meter" class="results"></div>
         
         <div class="quadrant-grid">
-            <div id="q2_box" class="q-box">Q2<br>Export (-)<br>Import (+)<br>Leading (0.8C)</div>
-            <div id="q1_box" class="q-box">Q1<br>Import (+)<br>Import (+)<br>Lagging (0.5L)</div>
-            <div id="q3_box" class="q-box">Q3<br>Export (-)<br>Export (-)<br>Lagging (0.5L)</div>
-            <div id="q4_box" class="q-box">Q4<br>Import (+)<br>Export (-)<br>Leading (Capacitive)</div>
+            <div id="q2_box" class="q-box">Q2<br>Reactive (-)<br>0.8C</div>
+            <div id="q1_box" class="q-box">Q1<br>Reactive (+)<br>0.5L</div>
+            <div id="q3_box" class="q-box">Q3<br>Reactive (-)<br>0.5L</div>
+            <div id="q4_box" class="q-box">Q4<br>Reactive (+)<br>0.8C</div>
         </div>
     </div>
 
@@ -1456,6 +1477,34 @@ button.calc-trigger,.primary-btn,.btn-primary{background:#0878d1!important;color
         document.getElementById('ui_md_kva').style.display = (mode === 'md_kva') ? 'block' : 'none';
     }
 
+
+    function transformerPowerSolve(type) {
+      const read = id => { const el=document.getElementById(id); return el ? Number(el.value) : NaN; };
+      const show = (id, html) => showResult(id, html);
+      const validPF = pf => Number.isFinite(pf) && pf >= 0 && pf <= 1;
+      const fmt = n => n.toLocaleString('en-IN',{maximumFractionDigits:3});
+      if (type === 'single') {
+        const v=read('tp_1_v'), i=read('tp_1_i'), pf=read('tp_1_pf');
+        if (!(v>0 && i>=0 && validPF(pf))) return show('tp_res_single','Please enter voltage > 0, current ≥ 0, and power factor from 0 to 1.');
+        const p=v*i*pf; return show('tp_res_single',`<strong>Active Power:</strong> ${fmt(p)} W<br><strong>In kW:</strong> ${fmt(p/1000)} kW`);
+      }
+      if (type === 'three' || type === 'apparent' || type === 'reactive') {
+        const prefix=type==='three'?'tp_3_':type==='apparent'?'tp_s_':'tp_q_';
+        const v=read(prefix+'v'), i=read(prefix+'i'), pf=type==='three'?read('tp_3_pf'):type==='reactive'?read('tp_q_pf'):null;
+        const resultId=type==='three'?'tp_res_three':type==='apparent'?'tp_res_apparent':'tp_res_reactive';
+        if (!(v>0 && i>=0) || (pf!==null && !validPF(pf))) return show(resultId,'Please enter valid positive voltage, non-negative current, and power factor from 0 to 1 where required.');
+        if(type==='three'){const p=Math.sqrt(3)*v*i*pf;return show(resultId,`<strong>Active Power:</strong> ${fmt(p)} W<br><strong>In kW:</strong> ${fmt(p/1000)} kW`);}
+        if(type==='apparent'){const s=Math.sqrt(3)*v*i;return show(resultId,`<strong>Apparent Power:</strong> ${fmt(s)} VA<br><strong>In kVA:</strong> ${fmt(s/1000)} kVA`);}
+        const q=Math.sqrt(3)*v*i*Math.sqrt(Math.max(0,1-pf*pf));return show(resultId,`<strong>Reactive Power magnitude:</strong> ${fmt(q)} var<br><strong>In kVAr:</strong> ${fmt(q/1000)} kVAr`);
+      }
+      if(type==='loss'){
+        const input=read('tp_loss_in'), output=read('tp_loss_out');
+        if(!(input>=0 && output>=0)) return show('tp_res_loss','Please enter both input and output power as non-negative kW values.');
+        const loss=input-output;
+        return show('tp_res_loss',`<strong>Input Power:</strong> ${fmt(input)} kW<br><strong>Output Power:</strong> ${fmt(output)} kW<br><strong>Power Loss:</strong> ${fmt(loss)} kW${loss<0?'<br><em>Warning: output exceeds input; check the entered values.</em>':''}`);
+      }
+    }
+
     function calcTransformer() {
         let vp = parseFloat(document.getElementById('tx_vp').value) || 0;
         let vs = parseFloat(document.getElementById('tx_vs').value) || 1; 
@@ -1572,27 +1621,23 @@ button.calc-trigger,.primary-btn,.btn-primary{background:#0878d1!important;color
     }
 
     function analyzeQuadrant() {
-        let p = document.getElementById('qm_p_flow').value;
-        let q = document.getElementById('qm_q_flow').value;
-        let pf = document.getElementById('qm_pf_type').value;
+        const q = document.getElementById('qm_q_flow').value;
+        const pf = document.getElementById('qm_pf_type').value;
         let quad = "Undefined"; let reg = ""; let target = "";
-        
+
         document.querySelectorAll('.q-box').forEach(box => box.classList.remove('highlight'));
-        
-        if (p === 'import_pos' && q === 'import_pos' && pf === 'lag_inductive') {
-            quad = "Quadrant 1 (Q1)"; reg = "Active Import (+P) / Reactive Import (+Q) [Lagging Inductive]"; target = "q1_box";
-        } else if (p === 'export_neg' && q === 'import_pos' && pf === 'lead_capacitive') {
-            quad = "Quadrant 2 (Q2)"; reg = "Active Export (-P) / Reactive Import (+Q) [Leading Capacitive]"; target = "q2_box";
-        } else if (p === 'export_neg' && q === 'export_neg' && pf === 'lag_inductive') {
-            quad = "Quadrant 3 (Q3)"; reg = "Active Export (-P) / Reactive Export (-Q) [Lagging Inductive]"; target = "q3_box";
-        } else if (p === 'import_pos' && q === 'export_neg' && pf === 'lead_capacitive') {
-            quad = "Quadrant 4 (Q4)"; reg = "Active Import (+P) / Reactive Export (-Q) [Leading Capacitive]"; target = "q4_box";
-        } else {
-            quad = "Mixed Condition";
-            reg = "Verify input configurations.";
+
+        if (q === 'import_pos' && pf === 'lead_capacitive') {
+            quad = "Quadrant 4 (Q4)"; reg = "Reactive (+) with 0.8C"; target = "q4_box";
+        } else if (q === 'import_pos' && pf === 'lag_inductive') {
+            quad = "Quadrant 1 (Q1)"; reg = "Reactive (+) with 0.5L"; target = "q1_box";
+        } else if (q === 'export_neg' && pf === 'lead_capacitive') {
+            quad = "Quadrant 2 (Q2)"; reg = "Reactive (-) with 0.8C"; target = "q2_box";
+        } else if (q === 'export_neg' && pf === 'lag_inductive') {
+            quad = "Quadrant 3 (Q3)"; reg = "Reactive (-) with 0.5L"; target = "q3_box";
         }
 
-        if(target) document.getElementById(target).classList.add('highlight');
+        if (target) document.getElementById(target).classList.add('highlight');
         showResult('res_meter', `<strong>Current System State:</strong> ${quad}<br><strong>Register Mapping:</strong> ${reg}`);
     }
 
@@ -1897,6 +1942,35 @@ input::placeholder, textarea::placeholder { color: #555555 !important; opacity: 
 </script>
 <script>showPage("home");    paintDailyAlarmSettings();
     setInterval(checkDailyAlarm, 15000);
+</script>
+
+<script>
+function energySolve(type){
+ const get=id=>{const el=document.getElementById(id);return el?Number(el.value):NaN;};
+ const fmt=n=>Number(n).toLocaleString(undefined,{maximumFractionDigits:6});
+ const configs={
+  pt:{ids:['en_pt_p','en_pt_t'],calc:v=>v[0]*v[1],label:'Energy',unit:'J'},
+  vit:{ids:['en_vit_v','en_vit_i','en_vit_t'],calc:v=>v[0]*v[1]*v[2],label:'Energy',unit:'J'},
+  irt:{ids:['en_irt_i','en_irt_r','en_irt_t'],calc:v=>v[0]*v[0]*v[1]*v[2],label:'Energy',unit:'J'},
+  vrt:{ids:['en_vrt_v','en_vrt_r','en_vrt_t'],calc:v=>v[0]*v[0]*v[2]/v[1],label:'Energy',unit:'J',positive:[1]},
+  qv:{ids:['en_qv_q','en_qv_v'],calc:v=>v[0]*v[1],label:'Energy',unit:'J'},
+  wh:{ids:['en_wh_w','en_wh_h'],calc:v=>v[0]*v[1]/1000,label:'Energy',unit:'kWh'},
+  kwh:{ids:['en_kwh_kw','en_kwh_h'],calc:v=>v[0]*v[1],label:'Energy',unit:'kWh'},
+  pet:{ids:['en_pet_e','en_pet_t'],calc:v=>v[0]/v[1],label:'Power',unit:'W',positive:[1]},
+  pvi:{ids:['en_pvi_v','en_pvi_i'],calc:v=>v[0]*v[1],label:'Power',unit:'W'},
+  pir:{ids:['en_pir_i','en_pir_r'],calc:v=>v[0]*v[0]*v[1],label:'Power',unit:'W'},
+  pvr:{ids:['en_pvr_v','en_pvr_r'],calc:v=>v[0]*v[0]/v[1],label:'Power',unit:'W',positive:[1]},
+  '1ph':{ids:['en_1ph_v','en_1ph_i','en_1ph_pf'],calc:v=>v[0]*v[1]*v[2],label:'Real Power',unit:'W',pf:2},
+  '3ph':{ids:['en_3ph_v','en_3ph_i','en_3ph_pf'],calc:v=>Math.sqrt(3)*v[0]*v[1]*v[2],label:'Real Power',unit:'W',pf:2}
+ };
+ const c=configs[type];if(!c)return;const out=document.getElementById('en_res_'+type);if(!out)return;out.style.display='block';out.style.visibility='visible';out.setAttribute('aria-live','polite');const v=c.ids.map(get);
+ if(v.some(x=>!Number.isFinite(x))){out.innerHTML='<span style="color:#b42318;font-weight:600">Please enter all values.</span>';return;}
+ if(c.ids.some((id,i)=>{const el=document.getElementById(id);return el.value.trim()==='';})){out.innerHTML='<span style="color:#b42318;font-weight:600">Please enter all values.</span>';return;}
+ if(v.some(x=>x<0)|| (c.positive||[]).some(i=>v[i]<=0)){out.innerHTML='<span style="color:#b42318;font-weight:600">Enter non-negative values and ensure the denominator is greater than zero.</span>';return;}
+ if(c.pf!==undefined&&(v[c.pf]<0||v[c.pf]>1)){out.innerHTML='<span style="color:#b42318;font-weight:600">Power factor must be between 0 and 1.</span>';return;}
+ const result=c.calc(v);if(!Number.isFinite(result)){out.innerHTML='Unable to calculate. Check your inputs.';return;}
+ out.innerHTML='<strong>'+c.label+': '+fmt(result)+' '+c.unit+'</strong>'+(c.unit==='W'?'<br><span>Equivalent: '+fmt(result/1000)+' kW</span>':'')+(c.unit==='kWh'?'<br><span>Electricity units: '+fmt(result)+' unit(s)</span>':'');
+}
 </script>
 </body>
 </html>
